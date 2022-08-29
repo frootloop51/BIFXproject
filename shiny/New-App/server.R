@@ -10,7 +10,7 @@
 library(shiny)
 
 # Define server logic required to draw a histogram
-shinyServerfunction(input, output, session) {
+shinyServer(function(input, output, session) {
   
   # Combine the selected variables into a new data frame
   selectedData <- reactive({
