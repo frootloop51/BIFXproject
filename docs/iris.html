@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>iris</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+<script src="iris_files/libs/clipboard/clipboard.min.js"></script>
+<script src="iris_files/libs/quarto-html/quarto.js"></script>
+<script src="iris_files/libs/quarto-html/popper.min.js"></script>
+<script src="iris_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="iris_files/libs/quarto-html/anchor.min.js"></script>
+<link href="iris_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="iris_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="iris_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="iris_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="iris_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="show-pub show-toolbars fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+&lt;!DOCTYPE html&gt;
+
+
+<meta content="IE=edge" http-equiv="X-UA-Compatible">
+<meta content="width=800" name="viewport">
+<title>
+RPubs - An introduction to R using iris
+</title>
+<meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="J/Yyi4a0eQmaWsA/arYlDHXJPA1x2RsM6/oq1VH+oZqNofrt1xfOEZuX10hITWKsw+oyVLS++y3t43PLZd3MPg==">
+<link rel="stylesheet" media="all" href="/assets/application-db3d8f9490de0f0058decd5613b51469ee8c3214db95ce7e0bd47355e96429eb.css"> <link rel="stylesheet" media="all" href="/assets/pub/show-58702f9d9025877672e50953d29b220ea08ef2b5acac46cef96fb9182e555801.css">
+<script src="/assets/application-050918065a747f23455921e989643a0f9050e5da8573c9858fc4266f0ec88af2.js"></script>
+<link rel="stylesheet" href="https://use.typekit.net/tzi3tjz.css">
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-20375833-3', 'auto', {'allowLinker': true});
+  ga('require', 'linker');
+  ga('linker:autoLink', ['rstudio.com', 'rstudio.github.io', 'rviews.rstudio.com', 'community.rstudio.com', 'rpubs.rstudio.com', 'environments.rstudio.com', 'rstudio.org', 'dailies.rstudio.com', 'pages.rstudio.com', 'db.rstudio.com', 'solutions.rstudio.com', 'docs.rstudio.com', 'spark.rstudio.com', 'shiny.rstudio.com', 'education.rstudio.com', 'rstudio.cloud', 'shinyapps.io', 'teamadmin.rstudio.com', 'blog.rstudio.com', 'support.rstudio.com'] );
+  ga('send', 'pageview');
+</script>
+
+
+<div id="login" class="modal" style="display: none">
+<div class="modal-header">
+<h1>
+Sign In
+</h1>
+</div>
+<div class="modal-body">
+<div id="login_message" class="alert" style="display: none">
+
+</div>
+<form action="/auth/login" accept-charset="UTF-8" method="post">
+<input name="utf8" type="hidden" value="✓"><input type="hidden" name="authenticity_token" value="J+X7/+pwv9bakSQHUCqDxZ8RlTu8NwQY2Eho9aQtzaG0Hufq3IwwaWjUAs9c+FteQ/FXKuQCwfdE1D/2k5S6fg=="> <input name="return_url" type="hidden">
+<div class="fieldset">
+<div class="control-group">
+<label class="control-label" for="login_username">Username or Email</label>
+<div class="controls">
+<p><input class="input-xlarge" id="login_username" name="username" type="text"></p>
+</div>
+</div>
+<div class="control-group">
+<label class="control-label" for="login_password">Password</label>
+<div class="controls">
+<p><input class="input-xlarge" id="login_password" name="password" type="password"></p>
+</div>
+</div>
+<div class="control-group">
+<p><a href="/auth/passwordhelp" target="_blank">Forgot your password?</a></p>
+</div>
+</div>
+</form>
+</div>
+<div class="modal-footer">
+<button class="btn btn-primary" id="login-modal-submit">
+Sign In
+</button>
+<button class="btn" id="login-modal-cancel">
+Cancel
+</button>
+</div>
+</div>
+<div id="pageheader" class="navbar-inner">
+<div id="branding">
+<h1 id="logo">
+<a href="/"><span id="R">R</span>Pubs </a>
+</h1>
+<p><span id="tagline">by RStudio</span></p>
+</div>
+<div id="identity">
+<div class="btn-group">
+<p><a class="btn btn-inverse btn-small pull-right" href="#" onclick="rpubs_showLogin(); return false"> Sign in </a> <a class="btn btn-inverse btn-small pull-right" href="/users/new"> Register </a></p>
+</div>
+</div>
+</div>
+<div id="pagebody">
+<div id="payload">
+<iframe src="//rstudio-pubs-static.s3.amazonaws.com/204918_d5ccf842cbc540e78b3d6d3287e6ad38.html">
+</iframe>
+<button class="btn btn-tiny" id="btn-show-toolbars">
+<i class="icon-resize-small"></i>
+</button>
+</div>
+<div id="pagefooter" class="navbar navbar-fixed-bottom">
+<div class="navbar-inner">
+<div class="container-fluid">
+<ul class="nav" id="pubmeta">
+<li id="pubtitle">
+<label>An introduction to R using iris</label>
+</li>
+<li id="pubauthor">
+<a href="https://rpubs.com/moeransm">by Stephen Moerane</a>
+</li>
+<li id="pubtime">
+<label> Last updated <time datetime="2016-08-29T08:07:00+00:00">about 6 years ago</time> </label>
+</li>
+</ul>
+<ul class="nav pull-right">
+<li>
+<button class="btn btn-small btn-success" id="btn-comments">
+<i class="icon-comment icon-white"></i> <span id="comment-verb-hide"> Hide </span> Comments <span id="comment-count"> (–) </span>
+</button>
+<button class="btn btn-small btn-info" id="btn-share">
+<i class="icon-share icon-white"></i> Share
+</button>
+<button class="btn btn-small btn-inverse" id="btn-hide-toolbars">
+Hide Toolbars
+</button>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="modal hide" id="modal-share">
+<div class="modal-body">
+<btn class="close" data-dismiss="modal" type="button">×</btn>
+<h2 class="first anchored">
+Post on:
+</h2>
+<p>
+<a class="btn btn-primary btn-large" href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Frpubs.com%2Fmoeransm%2Fintro-iris&amp;source=tweetbutton&amp;text=An%20introduction%20to%20R%20using%20iris&amp;url=http%3A%2F%2Frpubs.com%2Fmoeransm%2Fintro-iris" onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=275,width=660');return false;"> Twitter </a> <a class="btn btn-primary btn-large" href="https://www.facebook.com/sharer.php?u=http%3A%2F%2Frpubs.com%2Fmoeransm%2Fintro-iris&amp;t=An%20introduction%20to%20R%20using%20iris" onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=350,width=660');return false;"> Facebook </a> <a class="btn btn-primary btn-large" href="https://plus.google.com/share?url=http%3A%2F%2Frpubs.com%2Fmoeransm%2Fintro-iris" onclick="window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;"> Google+ </a>
+</p>
+<hr>
+<h3 class="anchored">
+Or copy &amp; paste this link into an email or IM:
+</h3>
+<input onclick="this.select()" readonly="readonly" value="http://rpubs.com/moeransm/intro-iris">
+</div>
+</div>
+<script>
+  $('#btn-edit').click(function() {
+    location.href = "/moeransm/204918/edit";
+  });
+  $('#btn-delete').mouseover(function() {
+    $('#btn-delete').removeClass('btn-inverse').addClass('btn-danger');
+  });
+  $('#btn-delete').mouseout(function() {
+    $('#btn-delete').addClass('btn-inverse').removeClass('btn-danger');
+  });
+  $('#btn-hide-toolbars').click(function() {
+    $(document.body).addClass('hide-toolbars');
+    $(document.body).removeClass('show-toolbars');
+  });
+  $('#btn-show-toolbars').click(function() {
+    $(document.body).addClass('show-toolbars');
+    $(document.body).removeClass('hide-toolbars');
+  });
+  $('#btn-share').click(function() {
+    $('#modal-share').modal().css({
+      'margin-left': function () {
+        return -($(this).width() / 2);
+      }
+    });
+  });
+  $('#btn-comments').click(function() {
+    $(document.body).toggleClass('show-comments');
+  });
+  setInterval(function() {
+    // Poll for comment count. Barf.
+    var text = $('#dsq-num-posts').text();
+    if (text && /^\d+$/.test(text))
+      $('#comment-count').text('(' + text + ')');
+  }, 1000);
+</script>
+<div id="comment-wrapper">
+<div id="disqus_thread">
+<script>
+  var disqus_config = function () {
+      // The generated payload which authenticates users with Disqus
+      this.page.remote_auth_s3 = 'e30= a155b0c8cb1b9562178eb9f185a7cbe8a9a71f8a 1662643773';
+      this.page.author_s3 = 'eyJ1c2VybmFtZSI6InJwdWJzLTMyNTAxIn0= 8a6e246adb338931efca8f6aa5dffda2e795ba31 1662643773';
+      this.page.api_key = '7NhtlDm2Hf3z44e8I6PRkOLIwe9o1U0rVepc4PMzqwnADLCB3JhMdX7ZUPbnl85p';
+  };
+</script>
+<script>
+  var disqus_shortname = 'rpubs'; // required: replace example with your forum shortname
+  var disqus_identifier = 'pub-204918';
+  var disqus_developer = 1;
+  
+  /* * * DON'T EDIT BELOW THIS LINE * * */
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+</div>
+</div>
+</div>
+
+
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
