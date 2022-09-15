@@ -1,0 +1,233 @@
+---
+title: "Homework 2 - R Intro: Ian Lacy"
+format: docx
+---
+
+## R Intro
+
+Fill out [this Quarto document](https://github.com/BIFX552-22/CourseInfo/hw/02Rintro.qmd) while completing the R Intro lesson.
+
+### [Introduction to R and RStudio](https://swcarpentry.github.io/r-novice-gapminder/01-rstudio-intro/index.html)
+
+::: callout-tip
+## Key Points
+
+-   Use RStudio to write and run R programs.
+-   R has the usual arithmetic operators and mathematical functions.
+-   Use `<-` to assign values to variables.
+-   Use `ls()` to list the variables in a program.
+-   Use `rm()` to delete objects in a script.
+-   Use `install.packages()` to install packages and `library()` to load them.
+:::
+
+#### Challenge 1
+
+Which of the following are valid R variable names?
+
+    min_height
+    min_height
+    max.height
+    _age
+    .mass #hidden variable
+    MaxLength
+    min-length
+    2widths
+    celsius2kelvin
+    
+Please see list of values below code box.
+
+```{r}
+
+min_height = 0
+max.height = 1 
+#_age =2 #invalid 1) begins with symbol
+.mass = 3 #hidden variable
+MaxLength = 4 
+#min-length = 5 #invalid - 1) compares two functions and tries to subtract them
+#2widths =6 #Invalid. begins with number
+celsius2kelvin =7
+
+
+```
+
+
+* Valid
+  + min_height
+  + max.height
+  + .mass
+  + MaxLength
+  + celsius2kelvin
+ 
+* Invalid
+  + _age
+  + min-length
+  + 2widths
+
+
+#### Challenge 2
+
+What will be the value of each variable after each statement in the following program?
+
+```{r}
+mass <- 47.5
+paste0("Mass is: ",mass)
+age <- 122
+paste0("Age is: " ,age)
+mass <- mass * 2.3
+paste0("Mass multiplied by 2.3 is: ", mass)
+age <- age - 20
+paste0("Age minus 20 is: " ,age)
+```
+
+After initializing the variables, the value of mass is 47.5 and the value of age is 122.
+
+After multiplying mass by 2.3, and reassigning the result to the mass variable, it's value changed to 109.25. Similarly, the variable age changed value after being reassigned the result of age - 20, resulting in a new value of 102.
+
+#### Challenge 3
+
+Run the code from the previous challenge, and write a command to compare `mass` to `age`. Is mass larger than age?
+
+```{r}
+
+if(mass > age){
+  print("Mass is larger than age.")
+} else if (mass < age ){
+  print("Mass is smaller than age.")
+}else {print("Mass is equal to age.")
+  }
+
+```
+
+Yes, mass is larger than age. In the above code block I created an if, else if, else flow to test multiple scenarios to ensure I identified whether mass was larger than age. 
+
+#### Challenge 4
+
+Clean up your working environment by deleting the mass and age variables.
+
+```{r}
+# code goes here
+rm(mass, age)
+
+#rm(list = ls()) 
+#use the above function to clear all values from the environment.
+
+
+```
+
+#### Challenge 5
+
+Install the following packages: `ggplot2`, `dplyr`, `gapminder`
+
+```{r}
+# this will fail if the required packages are not installed
+library(ggplot2)
+library(dplyr)
+library(gapminder)
+```
+
+### [Project Intro](https://swcarpentry.github.io/r-novice-gapminder/02-project-intro/index.html)
+
+::: callout-tip
+## Key Points
+
+-   Use RStudio to create and manage projects with consistent layout.
+-   Treat raw data as read-only.
+-   Treat generated output as disposable.
+-   Separate function definition and application.
+:::
+
+#### Challenge 1
+
+Create a self-contained project
+
+We're going to turn our course project into a project in RStudio:
+
+1.  If you haven't already, clone your course project onto your local machine.
+2.  In RStudio, click the "File" menu button, then "New Project".
+3.  Click "Existing Directory" and locate the directory containing your course project.
+4.  Click the "Create Project" button.
+
+#### Challenge 2
+
+Open an RStudio project through the file system
+
+1.  Exit RStudio.
+2.  Navigate to your course project directory.
+3.  Create a new directory titled `hw/` and save this file into that directory.
+3.  Double click the `.Rproj` file in the rood directory of your course project repository.
+4.  Open this file in RStudio.
+4.  Take a screenshot of your RStudio session and place it in the `hw/img/` directory. It should have "BIFXproject - main - RStudio" in the header (or something similar).
+5.  Modify the line just below this to include your screenshot.
+
+![](img\BIFXsnap.png)
+
+#### Challenge 3
+
+You should have installed the `gapminder` package. If you are following along with the Software Carpentry notes, they ask us to download the gapminder data set at this point. Instead, we'll load it directly from the `gapminder` package (i.e. you get this challenge for free).
+
+```{r}
+library(gapminder)
+data(gapminder)
+
+# let's take a look at the data we'll be working with
+gapminder
+```
+
+
+### [Seeking Help](https://swcarpentry.github.io/r-novice-gapminder/03-seeking-help/index.html)
+
+::: callout-tip
+## Key Points
+
+Use `help()` or `?` to get help in R.
+:::
+
+#### Challenge 1
+
+Look at the help page for `c`. What kind of vector do you expect will be created if you evaluate the following?
+
+help(c)
+
+```{r}
+a <- c(1, 2, 3)
+b <- c('d', 'e', 'f')
+c <- c(1, 2, 'f')
+
+a
+b
+c
+```
+C is a function that combines values into vectors and reassigns all values into a common data type if necessary. For example, the first two vectors have uniform data types and do not need to be altered. But vector c is mixed with both numeric and character values and c ultimately converts all of these values into character values.
+
+#### Challenge 2
+
+Look at the help for the `paste` function. You will need to use it later. What’s the difference between the `sep` and `collapse` arguments?
+
+help(paste)
+
+**Sep is used to separate terms whereas collapse separates results.**
+
+### sep	
+a character string to separate the terms. Not NA_character_.
+
+### collapse
+an optional character string to separate the results. Not NA_character_.
+
+#### Challenge 3
+
+Use help to find a function (and its associated parameters) that you could use to load data from a tabular file in which columns are delimited with “\t” (tab) and the decimal point is a “.” (period). This check for decimal separator is important, especially if you are working with international colleagues, because different countries have different conventions for the decimal point (i.e. comma vs period). 
+
+:::{.callout-note collapse="true"}
+# Hint
+Use `??"read table"` to look up functions related to reading in tabular data.
+:::
+
+??"read table"
+
+Using the read.delim function, we should be able to hanlde tabular data that is delimited with the "\t" and uses a decimal point (period).
+
+![](img\delim2.png)
+
+This function uses tab as the character separator and the dec value (the character used in the file for decimal points) is set to use periods)
+
+
