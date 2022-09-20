@@ -1,0 +1,10 @@
+---
+title: "Learning R on iris" 
+format: docx
+editor: visual
+---
+
+```{r}
+library(DiagrammeR)
+
+```
