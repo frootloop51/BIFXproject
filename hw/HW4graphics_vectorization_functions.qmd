@@ -8,7 +8,7 @@ format: docx
 library(ggplot2)
 library(gapminder)
 data(gapminder)
-#install.packages("rmarkdown")
+install.packages("rmarkdown")
 ```
 
 ```{r}
@@ -31,7 +31,7 @@ Fill out [this Quarto document](https://github.com/BIFX552-22/CourseInfo/hw/04gr
 Modify the example so that the figure shows how life expectancy has changed over time:
 
 ```{r}
-ggplot(data = gapminder, mapping = aes(x = year, y = lifeExp)) + geom_point()
+ggplot(data = gapminder, mapping = aes(x = year, y = lifeExp)) + geom_line()
 ```
 
 #### Challenge 2

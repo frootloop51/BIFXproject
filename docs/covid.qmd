@@ -5,7 +5,7 @@ format:
     theme: 
       light: flatly
       dark: darkly
-bibliography: references.bib
+#bibliography: references.bib
 editor: visual
 ---
 
@@ -36,6 +36,10 @@ source('https://tinyurl.com/wjm6ryj') # colorblind palettes
 library(knitr)
 ```
 
+```{r}
+library(tidyverse)
+```
+
 ## Canine confounders
 
 We'll be using a [COVID-19 dataset from Mexico City](https://bit.ly/3Ou4n2U) that was featured in an article in Significance Magazine titled [Canine Confounders](https://rss.onlinelibrary.wiley.com/doi/epdf/10.1111/1740-9713.01670) [@nunez2022].
@@ -44,23 +48,23 @@ What is presented here is intentionally rough and open ended. After filling in t
 
 ```{r}
 # download data if we haven't already
-if(!file.exists('sisver_public.csv'))
-{
-    download.file(url = "https://archivo.datos.cdmx.gob.mx/sisver/covid19_sisver_cdmx.csv",
-              destfile = "sisver_public.csv")
-}
+#if(!file.exists('sisver_public.csv'))
+#{
+ #   download.file(url = "https://archivo.datos.cdmx.gob.mx/sisver/covid19_sisver_cdmx.csv",
+  #            destfile = "sisver_public.csv")
+#}
 
 # only do this formatting step once
 if(!file.exists('sisver.RData'))
 {
     sisver <- read_csv('sisver_public.csv') %>%
-        rename(dt_symptoms = fecinisi, # date that symptoms started
-               dt_admit = fechreg,     # date admitted to hospital
-               dt_death = fecdef       # death date
+        rename(dt_symptoms = fecha_inicio_sintomas, # date that symptoms started
+               dt_admit = fecha_ingreso,     # date admitted to hospital
+               dt_death = fecha_defuncion       # death date
     ) %>%
     
            # primary outcomes
-    mutate(hospitalized = tipacien == 'HOSPITALIZADO',
+    mutate(hospitalized = tipo_paciente == 'HOSPITALIZADO',
            covid_death = !is.na(dt_death),
            intubation = intubado == 'SI',
            death_intubation = covid_death | intubation,
@@ -96,6 +100,9 @@ if(!file.exists('sisver.RData'))
         ### hospital admission date between Jan 1, 2021 and Apr 5, 2021
         ### individuals were hospitalized
         ### event time is between 0 and 30 days
+    
+    
+filter(sisver, dt_admit >= "2021-01-01"& dt_admit <= "2021-04-05", hospitalized,event_time > 0 & event_time < 30)
 ########################################################################
     
     select(dt_symptoms, dt_admit, dt_death, covid_death, event_date,
@@ -107,6 +114,7 @@ if(!file.exists('sisver.RData'))
 }else{
     load('sisver.RData')
 }
+
 
 ```
 
@@ -158,17 +166,23 @@ Here are Kaplan-Meier plots for our risk factors and confounders.
 make_km_plot <- function(fact)
 {
     # fit survival curve for fact
-    survfit(formula(paste("t_sympt_death ~", fact)), data = sisver) %>%
+    paste("t_sympt_death ~", fact) %>%
+    formula()%>%
+    survfit(data = sisver) %>%
         
-        # plot survival curve
-        autoplot(conf.int = FALSE) +
-        
+      # plot survival curve
+      autoplot(conf.int = FALSE)+
+      labs(color=fact)+
+      scale_color_manual(values=cbbPalette)
+
+      
 ########################################################################
         # modifications to plot: 
         ### use `cbbPalette` loaded above for colors
         ### change legend title to match `fact`
 ########################################################################
 }
+
 
 make_km_plot('antivirals')
 make_km_plot(  'diabetes')
@@ -191,7 +205,7 @@ After removing a few sectors that don't have much data, let's look at this graph
 
 ```{r}
 # start by removing those that have very few samples
-sisver_sub <- sisver %>%
+sisver_sub <- filter(sisver, !sector %in% c('CRUZ ROJA', 'ESTATAL', 'IMSS-OPORTUNIDADES', 'SEMAR', 'UNIVERSITARIO'))
 ########################################################################
 ## filter `sisver` such that sector is not in:
 ## c('CRUZ ROJA', 'ESTATAL', 'IMSS-OPORTUNIDADES', 'SEMAR', 'UNIVERSITARIO')
@@ -200,10 +214,18 @@ sisver_sub <- sisver %>%
 ########################################################################
 # first stacked bar plot
 ## hint: `geom_bar()` is what you want for the stacked bar plot
+
+g1 <- ggplot(sisver_sub, aes(dt_admit,fill=dog_all))+
+  geom_bar()+
+  scale_y_log10()+
+  scale_fill_manual(values= cbbPalette)
+
+g1
 ########################################################################
 
 ########################################################################
 # grid of stacked bar plots, separated by sector
+g1 + facet_wrap(~ sector)
 ########################################################################
 ```
 
