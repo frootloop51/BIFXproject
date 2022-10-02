@@ -1,0 +1,98 @@
+---
+title: "Homework 6 - Joining Tables and Software Tips"
+format: docx
+editor: visual
+---
+
+Fill out [this Quarto document](https://github.com/BIFX552-22/CourseInfo/hw/06joining_tables.qmd) while completing the lesson on graphics, vectorization and functions in R.
+
+```{r}
+#| include: false
+#if(FALSE)
+#{
+    # use this code to install the package we're using #for this lesson
+#    BiocManager::install("UCLouvain-CBIO/rWSBIM1207")
+#}
+
+
+#data(jdf)
+```
+
+```{r}
+    BiocManager::install("UCLouvain-CBIO/rWSBIM1207")
+
+```
+
+```{r}
+
+    library(rWSBIM1207)
+    library(dplyr)
+    data(jdf)
+```
+
+### [Joining Tables](https://carpentries-incubator.github.io/bioc-intro/50-joining-tables/index.html)
+
+::: callout-tip
+## Key Points
+
+-   Join tables of data in R
+:::
+
+#### Challenge 1
+
+Using the `full_join` function, join tables `jdf4` and `jdf5`. What has happened for observations `P26039` and `P02468`?
+
+```{r}
+full_join(jdf4, jdf5)
+```
+
+Because full_join brings all things from either table regardless if they match or not. Therefore there will be NA values when rows do not match. For P20639 is missing in jdf5 because it is not present in jdf5 and does not have the values from that dataset.
+
+#### Challenge 2
+
+Join tables `jdf4` and `jdf5`, keeping only observations in `jdf4`.
+
+```{r}
+left_join(jdf4, jdf5) 
+
+#could also do this if we wanted to alter jdf4 then pass it to the join function
+#jdf4 %>%
+  #do something
+ # left_join(jdf5)
+```
+
+#### Challenge 3
+
+Join tables `jdf4` and `jdf5`, keeping only observations in `jdf5`.
+
+```{r}
+right_join(jdf4, jdf5)
+```
+
+#### Challenge 4
+
+Join tables `jdf4` and `jdf5`, keeping observations observed in both tables.
+
+```{r}
+inner_join(jdf4,jdf5)
+```
+
+#### Challenge 5
+
+Given the inner join,
+
+```{r}
+inner_join(jdf6, jdf7)
+```
+
+interpret the result, where both tables have duplicated keys.
+
+Using inner_join(jdf6,jdf7) we are telling the function to find matching values in the two datasets. In this case, it is matching by uniprot. The only matching uniprot is for Q99PL5. In jdf6 we have two values for Q99PL5 and in jdf7 we have two values for Q99PL5. The first value of Q99PL5 in jdf6 matches with the two values of Q99PL5 then the second one matches with the same values. This creates duplicates because of how R is reading in the data. Please see below for a representation of how jdf6 is matching to jdf7 (blue for the first value in jdf6 and orange for the second value in jdf7).
+
+![](images/paste-8EDD954C.png)
+
+```{r}
+#to fix the issue in challenge 5, we can do the following:
+inner_join(jdf6,jdf7, by = c('uniprot' = 'uniprot', 'isoform' = "isoform_num"))
+
+```

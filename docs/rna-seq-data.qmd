@@ -1,8 +1,17 @@
 ---
 title: "RNA-seq Data"
-format: html
+format: docx
 editor: visual
 ---
+
+```{r}
+library(readr)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(tidyr)
+library(hexbin)
+```
 
 ```{r}
 #| inclue: false
@@ -12,12 +21,17 @@ source('https://tinyurl.com/wjm6ryj')
 
 if(FALSE)
 {
-    download.file(url = "https://github.com/Bioconductor/bioconductor-teaching/raw/master/data/GSE96870/rnaseq.csv",
+    download.file(url = "https://github.com/Bioconductor/bioconductor-teaching/raw#/master/data/GSE96870/rnaseq.csv",
               destfile = "data/rnaseq.csv")
 }
 
 ### Read in data here ###
-dat <- 
+dat <- read_csv("data/rnaseq.csv") %>% mutate(ln2expression = log2(expression))
+```
+
+```{r}
+dat <- dat %>% mutate(ln2expression = log2(expression +1))
+summary(dat)
 ```
 
 Note: this lab borrows heavily from a [Carpentries incubator module on visualization](https://carpentries-incubator.github.io/bioc-intro/40-visualization/index.html).
@@ -28,6 +42,11 @@ To start out with, let's explore the data provided:
 
 ```{r}
 
+
+#biotype data
+table(dat$gene_biotype)
+
+table(dat$organism)
 ```
 
 Take a look at the distribution of the expression levels:
@@ -37,13 +56,20 @@ Take a look at the distribution of the expression levels:
 # hint: use geom_histogram
 ## You'll probably notice an automatic message that appears when drawing the histogram: `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ## Change the arguments bins or binwidth of geom_histogram() to change the number or width of the bins.
+
+g1 <- ggplot(data = dat, mapping = aes(x = expression)) +
+  geom_histogram(bins = 50)
+
+g1
 ```
 
 The data should be transformed. Transforming on the $\log_{10}$ scale is easy in `ggplot2`,
 
 ```{r}
 #| warning: false
-# transform x-axis to log_10 scale
+g2 <- g1 + scale_x_log10()
+
+g2
 ```
 
 but we often use a $log_2$ scale when looking at expression data:
@@ -53,7 +79,11 @@ but we often use a $log_2$ scale when looking at expression data:
 
 # the following code will be helpful
 ticks_at <- c(0,5,10,15)
-    scale_x_continuous(breaks = ticks_at, labels = 2^ticks_at) +
+
+ggplot(dat, aes(ln2expression)) +
+  geom_histogram(bins = 50)+
+  scale_x_continuous(breaks = ticks_at, labels = 2^ticks_at)+
+  labs(x = "Expression")
 ```
 
 ### Building plots iteratively
@@ -64,28 +94,46 @@ We will now draw a scatter plot with two continuous variables and the `geom_poin
 #| message: false
 # fold change data
 
+dat_fc <- dat %>%
+
      # calculate summaries of log2 expression grouped by gene, time, gene_biotype
+      group_by(gene, time, gene_biotype) %>% 
+      summarize(mean_exp = mean(ln2expression)) %>%
+      ungroup() %>%
 
     # pivot wider so that there is a separate column for each value in time
-
-    mutate(, # compare time 8 vs 0
-           ) # compare time 4 vs 0
-
+    pivot_wider(names_from = time, values_from= mean_exp) %>%
+      mutate(time_8_vs_0 = `8` - `0`,# compare time 8 vs 0
+             time_4_vs_0 = `4` - `0`)# compare time 4 vs 0
+             
+#
 # visualize time_4_vs_0 by time_8_vs_0 
 # hint: the following line will be helpful
-    geom_abline(intercept = 0, slope = 1)
+
+  ggplot(dat_fc, aes(time_4_vs_0, time_8_vs_0))+
+    geom_point(alpha = 0.2)+
+  geom_abline(intercept = 0, slope = 1)
+  
+  table(is.na(dat_fc$time_4_vs_0))
 ```
 
 We could also add color, but it begins to get a little messy with the large number of categories we have.
 
 ```{r}
-# insert code here
+  ggplot(dat_fc, aes(time_4_vs_0, time_8_vs_0, color = gene_biotype))+
+    geom_point(alpha = 0.2)+
+    geom_abline(intercept = 0, slope = 1) 
+
 ```
 
 Over-plotting can be an issue with large datasets like this. One solution is using `hexbin:geom_hex()`.
 
 ```{r}
-# code goes here
+  ggplot(dat_fc, aes(time_4_vs_0, time_8_vs_0))+
+    geom_hex()+
+  geom_abline(intercept = 0, slope = 1)
+  
+
 ```
 
 ### Box plots
@@ -93,20 +141,37 @@ Over-plotting can be an issue with large datasets like this. One solution is usi
 We can use boxplots to visualize the distribution of gene expressions within each sample:
 
 ```{r}
-# code goes here
+ ggplot(dat, aes(sample, ln2expression))+
+   geom_boxplot()+
+   labs(y="Log2 Expression")+
+   theme(axis.text.x= element_text(angle =90, hjust = 0.5, vjust = 0.5))
 ```
 
 Adding points to box plots can give us a better understanding of the underlying distributions.
 
 ```{r}
 # hints: use geom_jitter to plot points; this line of code will be helpful
-    theme(axis.text.x = element_text(angle = 90,  hjust = 0.5, vjust = 0.5))
+     ggplot(dat, aes(sample, ln2expression))+
+      geom_jitter(alpha = 0.05, width = .1, color = cbbPalette[3]) +
+      geom_boxplot()+
+      labs(y="Log2 Expression")+
+      theme(axis.text.x= element_text(angle =90, hjust = 0.5, vjust = 0.5))
+     
+     
+
 ```
 
 We could also use `geom_violin` to better see the distribution of points. Try coloring the points by `time` as well.
 
 ```{r}
-# code goes here
+mutate(dat, time= as.character(time))%>%
+     ggplot(aes(sample, ln2expression))+
+      geom_jitter(aes(color = time),alpha = 0.05, width = .1) +
+      geom_violin( alpha = 0) +
+      labs(y="Log2 Expression")+
+      theme(axis.text.x= element_text(angle =90, hjust = 0.5, vjust = 0.5))
+      scale_color_manual(values = cbbPalette[1:3])
+
 ```
 
 ### Line plots
@@ -116,14 +181,22 @@ Let's calculate the mean expression per duration of the infection for the 10 gen
 ```{r}
 #| message: false
 
+top10Genes <- arrange(dat_fc, desc(abs(time_8_vs_0)))$gene[1:10]
+
 # First, we need to select the top 10 genes
 
 # Then create a subset of dat containing the 10 selected genes
+top10_df <- filter(dat, gene %in% top10Genes) %>%
+
 
     # Then group the data by gene and time
+  group_by(gene,time) %>%
     # calculate the mean gene expression within each group
-
+  summarize(mean_exp = mean(ln2expression))%>%
+    ungroup() 
 # plot summary lines
+ggplot(top10_df, aes(time,mean_exp, group = gene, color = gene))+
+  geom_line()
 
 ```
 
@@ -136,13 +209,40 @@ Now we would like to split the line in each plot by the sex of the mice.
     # Then group the data by gene, time, and sex
     # calculate the mean gene expression within each group
 
+top10_df1 <- filter(dat, gene %in% top10Genes) %>%
+
+
+    # Then group the data by gene and time
+  group_by(gene,time,sex) %>%
+    # calculate the mean gene expression within each group
+  summarize(mean_exp = mean(ln2expression))%>%
+    ungroup()
+
+ggplot(data = top10_df1,
+       mapping = aes(x = time, y = mean_exp, color = sex)) +
+  geom_line() +
+  facet_wrap(~ gene, scales = "free_y")
 ```
 
 Let's do something similar and create a plot that depicts how the average expression of each chromosome changes through the duration of infection.
 
 ```{r}
 #| message: false
-# insert code here
+top10_df2 <- dat %>%
+
+
+    # Then group the data by gene and time
+  group_by(chromosome_name,time) %>%
+    # calculate the mean gene expression within each group
+  summarize(mean_exp = mean(ln2expression))%>%
+    ungroup()
+
+
+
+ggplot(data = top10_df2, mapping = aes(x = time,
+                                y = mean_exp)) +
+  geom_line() +
+  facet_wrap(~ chromosome_name, scales = "free_y")
 ```
 
 The `facet_wrap` geometry extracts plots into an arbitrary number of dimensions to allow them to cleanly fit on one page. On the other hand, the `facet_grid` geometry allows you to explicitly specify how you want your plots to be arranged via formula notation (`rows ~ columns`; a `.` can be used as a placeholder that indicates only one row or column).
@@ -151,4 +251,11 @@ Let's modify the previous plot to compare how the mean gene expression of males 
 
 ```{r}
 # One column, facet by rows
+
+
+
+ggplot(data = top10_df1,
+       mapping = aes(x = time, y = mean_exp, color = gene)) +
+  geom_line() +
+  facet_grid(sex ~ .)
 ```
