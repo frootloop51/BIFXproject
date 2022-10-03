@@ -56,7 +56,7 @@ Join tables `jdf4` and `jdf5`, keeping only observations in `jdf4`.
 left_join(jdf4, jdf5) 
 
 #could also do this if we wanted to alter jdf4 then pass it to the join function
-#jdf4 %>%
+#jdf4 #%>%
   #do something
  # left_join(jdf5)
 ```
