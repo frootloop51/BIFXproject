@@ -1,0 +1,49 @@
+Redirection
+
+Key Points
+
+grep is a powerful search tool with many options for customization.
+
+> , \>\>, and \| are different ways of redirecting output.
+
+command \> file redirects a command's output to a file.
+
+command \>\> file redirects a command's output to a file without overwriting the existing contents of the file.
+
+command_1 \| command_2 redirects the output of the first command as input to the second command.
+
+for loops are used for iteration.
+
+basename gets rid of repetitive parts of names.
+
+Challenge 1
+
+Search for the sequence GNATNACCACTTCC in the SRR098026.fastq file. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
+
+Search for the sequence AAGTT in both FASTQ files. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
+
+# insert code and output here
+
+Challenge 2
+
+How many sequences are there in SRR098026.fastq? Remember that every sequence is formed by four lines.
+
+# insert code and output here
+
+Challenge 3
+
+How many sequences in SRR098026.fastq contain at least 3 consecutive Ns?
+
+# insert code and output here
+
+Challenge 4
+
+Print the file prefix of all of the .txt files in our current directory.
+
+# insert code and output here
+
+Challenge 5
+
+Remove \_2019 from all of the .txt files.
+
+# insert code and output here

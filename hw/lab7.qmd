@@ -38,20 +38,6 @@ Use the `-l` option for the `ls` command to display more information for each it
     drwxr-xr--. 2 1024 users 4096 Oct 13 17:51 sra_metadata
     drwxr-xr-x. 2 1024 users 4096 Oct 13 17:51 untrimmed_fastq
 
-> drwxr-xr\--. 2 1024 users 4096 Oct 13 17:51 sra_metadata
->
-> drwxr-xr-x. 2 1024 users 4096 Oct 13 17:51 untrimmed_fastq
->
-> Both of these are directories.
->
-> Permissions follow. (need to clarify what's what)
->
-> 4.0k is size of item on the disk
->
-> 1024 is owner ID
->
-> users is the group it is in
-
 ## [Navigating Files and Directories](https://datacarpentry.org/shell-genomics/02-the-filesystem/index.html)
 
 ::: callout-tip
@@ -204,52 +190,3 @@ Starting in the `shell_data/untrimmed_fastq/` directory, do the following:
     -r--r--r--. 1 1024 users 47552 Oct 13 20:15 SRR097977.fastq
     -r--r--r--. 1 1024 users 43332 Oct 13 20:15 SRR098026.fastq
     -bash-4.2$ 
-
-## [Redirection](https://datacarpentry.org/shell-genomics/04-redirection/index.html)
-
-::: callout-tip
-### Key Points
-
--   grep is a powerful search tool with many options for customization.
--   `>`, `>>`, and `|` are different ways of redirecting output.
--   `command > file` redirects a command's output to a file.
--   `command >> file` redirects a command's output to a file without overwriting the existing contents of the file.
--   `command_1 | command_2` redirects the output of the first command as input to the second command.
--   `for` loops are used for iteration.
--   `basename` gets rid of repetitive parts of names.
-:::
-
-#### Challenge 1
-
--   Search for the sequence `GNATNACCACTTCC` in the `SRR098026.fastq` file. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
-
--   Search for the sequence `AAGTT` in both FASTQ files. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
-
-```{=html}
-<!-- -->
-```
-    # insert code and output here
-
-#### Challenge 2
-
-How many sequences are there in `SRR098026.fastq`? Remember that every sequence is formed by four lines.
-
-    # insert code and output here
-
-#### Challenge 3
-
-How many sequences in `SRR098026.fastq` contain at least 3 consecutive Ns?
-
-    # insert code and output here
-
-#### Challenge 4
-
-Print the file prefix of all of the `.txt` files in our current directory.
-
-    # insert code and output here
-
-#### Challenge 5
-
-Remove `_2019` from all of the `.txt` files.
-
-    # insert code and output here
