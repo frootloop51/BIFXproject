@@ -151,9 +151,8 @@ Find the line number in your history for the command that listed all the .sh fil
 
 -   Print out the contents of the `~/shell_data/untrimmed_fastq/SRR097977.fastq` file. What is the last line of the file?
 
-```{=html}
 <!-- -->
-```
+
     cat ~/shell_data/untrimmed_fastq/SRR097977.fastq
     C:CCC::CCCCCCCC<8?6A:C28C<608'&&&,'$
 
@@ -178,15 +177,11 @@ What are the next three nucleotides (characters) after the first instance of the
 Starting in the `shell_data/untrimmed_fastq/` directory, do the following:
 
 -   Make sure that you have deleted your backup directory and all files it contains.
+
 -   Create a backup of each of your FASTQ files using `cp`. (Note: You'll need to do this individually for each of the two FASTQ files. We haven't learned yet how to do this with a wildcard.)scp
+
 -   Use a wildcard to move all of your backup files to a new backup directory.
+
 -   Change the permissions on all of your backup files to be write-protected.
 
-    -bash-4.2$ mkdir backup
-    -bash-4.2$ scp *.fastq backup/.
-    -bash-4.2$ chmod -w backup/*
-    -bash-4.2$ ls -l backup/
-    total 92
-    -r--r--r--. 1 1024 users 47552 Oct 13 20:15 SRR097977.fastq
-    -r--r--r--. 1 1024 users 43332 Oct 13 20:15 SRR098026.fastq
-    -bash-4.2$ 
+    -bash-4.2\$ mkdir backup -bash-4.2\$ scp *.fastq backup/. -bash-4.2\$ chmod -w backup/* -bash-4.2\$ ls -l backup/ total 92 -r--r--r--. 1 1024 users 47552 Oct 13 20:15 SRR097977.fastq -r--r--r--. 1 1024 users 43332 Oct 13 20:15 SRR098026.fastq -bash-4.2\$

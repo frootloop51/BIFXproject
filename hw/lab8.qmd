@@ -1,0 +1,192 @@
+---
+title: "Intro to Snakemake"
+format: 
+  html:
+    theme: 
+      light: flatly
+      dark: darkly
+---
+
+This lab borrows heavily from the Carpentries incubator lesson, [Snakemake for Bioinformatics](https://carpentries-incubator.github.io/snakemake-novice-bioinformatics/). You can follow along there
+
+## Installation and Setup
+
+### Snakemake
+
+Snakemake is available on the Hood cluster, but it is often helpful to have a local installation for development and troubleshooting. Follow [these installation instructions](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html) for installing Snakemake using Anaconda.
+
+Once you have installed Snakemake (including on the cluster), you should be able to start up the Snakemake environment with the shell command:
+
+`conda activate snakemake`
+
+### Data for this lab
+
+If you are working on the Hood cluster, you can copy the data for this lab from `/home/johnson/lab8_data`, or you can fetch the data from [figshare](https://ndownloader.figshare.com/files/35058796) and unzip locally.
+
+::: {.callout-note collapse="true"}
+## What can you learn from the FASTQ files in `yeast/reads` using the tools we learned last week?
+
+The sample dataset represents a transcriptomics experiment in brewer's yeast (Saccharomyces cerevisiae) under three conditions:
+
+-   etoh60 - Treated with 60% ethanol
+-   temp33 - Treated at 33 degrees celsius
+-   ref - Untreated
+
+For each condition there are 3 repeats, making 9 total samples. For each, total RNA (or rather, cDNA) was sequenced on an Illumina HiSeq instrument. For each repeat there is a pair of files as the sequencing is double-ended, so for example `reads/etoh60_3_2.fq` contains the second of the read pairs from the third ethanol-treated sample.
+
+Don't worry about the biological meaning of this set-up. We're only going to get as far as assessing the quality of the data and a very preliminary analysis. The data has been subsampled to a fraction of the original size to make filtering and alignment operations fast, so any deeper analysis is not going to yield meaningful results.
+
+As well as the reads, we have a transcriptome for the yeast. This comes in a single FASTA file (as opposed to the cDNA reads which are in FASTQ format) which has been GZip compressed.
+:::
+
+## Your first Snakefile <!-- https://carpentries-incubator.github.io/snakemake-novice-bioinformatics/01-introduction/index.html -->
+
+Within the `yeast` directory, edit a new text file named `Snakefile`.
+
+Contents of `Snakefile`:
+
+```{{code}}
+rule countlines:
+  output: "ref1_1.fq.count"
+  input:  "reads/ref1_1.fq"
+  shell:
+    "wc -l reads/ref1_1.fq > ref1_1.fq.count"
+```
+
+Once you have your Snakefile, execute it with the following command:
+
+``` {{bash}}
+snakemake -j1 -p ref1_1.fq.count
+```
+
+::: callout-note
+## Challenge 1
+
+Run `snakemake --help | less` to see the help for all available options. What does the `-p` option in the `snakemake` command above do?
+
+1.  Protects existing output files
+2.  Prints the shell commands that are being run to the terminal
+3.  Tells Snakemake to only run one process at a time
+4.  Prompts the user for the correct input file
+:::
+
+Remember that each FASTQ entry is made up of four lines. This code will output the number of reads, rather than the total number of lines in the file:
+
+``` {{bash}}
+echo $(($(wc -l <reads/ref1_1.fq) / 4))
+```
+
+::: callout-note
+## Challenge 2
+
+Modify `Snakefile` such that:
+
+-   outputs the number of reads in `reads/ref1_1.fq`
+-   has a second rule to count the number of reads in `reads/ref1_1.fq`
+:::
+
+Running your Snakefile again should result in two output files:
+
+``` {{bash}}
+snakemake -j1 -p ref1_1.fq.count etoh60_1_1.fq.count
+```
+
+## Placeholders and Wildcards <!-- https://carpentries-incubator.github.io/snakemake-novice-bioinformatics/02-placeholders/index.html -->
+
+In the previous episode you wrote two rules to count the sequences in two files. These work, but they are not a very efficient use of Snakemake. We have eighteen input files to process and we don't want to write eighteen near-identical rules!
+
+To make a more general-purpose rule we need placeholders and wildcards. Here is a new rule that will count the sequences in any of the `.fq` files.
+
+```{{code}}
+# New generic read counter
+rule countreads:
+  output: "{sample}.fq.count"
+  input:  "reads/{sample}.fq"
+  shell:
+    "echo $(( $(wc -l <{input}) / 4 )) > {output}"
+```
+
+::: callout-note
+## Challenge 3
+
+Our rule puts the sequence counts into output files named like `ref1_1.fq.count`. How would you have to change the "countreads" rule definition if you wanted:
+
+1.  the output file for `reads/ref1_1.fq` to be `counts/ref1_1.txt`?
+2.  the output file for `reads/ref1_1.fq` to be `ref1_counts/fq.1.count` (for `reads/ref1_2.fq` to be `ref1_counts/fq.2.count`, etc.)?
+3.  the output file for `reads/ref1_1.fq` to be `countreads_1.txt`?
+:::
+
+### Order of operations
+
+We're only just getting started with some simple rules, but it's worth thinking about exactly what Snakemake is doing when you run it. There are three distinct phases:
+
+1.  Prepares to run:
+    1.  Reads in all the rule definitions from the Snakefile
+2.  Plans what to do:
+    1.  Sees what file(s) you are asking it to make
+    2.  Looks for a matching rule by looking at the outputs of all the rules it knows
+    3.  Fills in the wildcards to work out the input for this rule
+    4.  Checks that this input file is actually available
+3.  Runs the steps:
+    1.  Creates the directory for the output file, if needed
+    2.  Removes the old output file if it is already there
+    3.  Only then, runs the shell command with the placeholders replaced
+    4.  Checks that the command ran without errors and made the new output file as expected
+
+For example, if we now ask Snakemake to generate a file named `wibble_1.fq.count`:
+
+``` {{bash}}
+snakemake -j1 -F -p wibble_1.fq.count
+```
+
+Snakemake sees that a file with a name like this could be produced by the countreads rule. However, when it performs the wildcard substitution it sees that the input file would need to be named `reads/wibble_1.fq`, and there is no such file available. Therefore Snakemake stops and gives an error before any commands are run.
+
+### Dry-run mode
+
+It's often useful to run just the first two phases, so that Snakemake will plan out the jobs to run, and print them to the screen, but never actually run them. This is done with the `-n` flag, eg:
+
+`snakemake -n -p temp33_1_1.fq.count`
+
+::: callout-note
+## Challenge 4
+
+Here is a command that will trim and filter low quality reads from a FASTQ file.
+
+`fastq_quality_trimmer -t 20 -l 100 -o output.fq <input.fq`
+
+Add a second rule to your Snakefile to run this trimmer. You should make it so that valid outputs are files with the same name as the input, but in a subdirectory named 'trimmed', for example:
+
+-   `trimmed/ref1_1.fq`
+-   `trimmed/temp33_1_1.fq`
+-   etc.
+:::
+
+## Chaining Rules <!-- https://carpentries-incubator.github.io/snakemake-novice-bioinformatics/03-chaining_rules/index.html -->
+
+We now have a "trimreads" rule and a "countreads" rule. The problem is there is no good way to use these rules together, that is, to trim an input file and then count the reads in the trimmed file. The countreads rule only takes input reads from the reads directory, whereas the trimreads rule puts all results into the trimmed directory.
+
+Chaining rules in Snakemake is a matter of choosing filename patterns that connect the rules. There's something of an art to it - most times there are several options that will work.
+
+::: callout-note
+## Challenge 5
+
+Modify your *countreads* rule such that we can supply `snakemake` with "trimmed.ref1_1.fq.count" and get the following outputs: \* `trimmed/ref1_1.fq` \* `ref1_1.trimmed.fq`
+:::
+
+Try it out!
+
+``` {{bash}}
+snakemake -j1 -p trimmed.ref1_1.fq.count
+```
+
+<!-- go through example and have the class break into groups to discuss their own pipeline -->
+
+::: callout-note
+## Group discussion
+
+Think about any data processing task you have done yourself, and write down three or four steps from that workflow.
+
+What were the inputs to, and outputs from, each step?
+
+How did the steps connect up, in terms of data going from one to the next? You may want to sketch this out and use arrows to indicate the linkages between the steps.
+:::
