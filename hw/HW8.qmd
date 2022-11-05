@@ -2,14 +2,15 @@
 title: "Hw 8 - Data wrangling for genomics"
 format: docx
 editor: visual
+markdown: 
+    wrap: 72
 ---
-
 
 ## [Background and Metadata](https://datacarpentry.org/wrangling-genomics/01-background/index.html)
 
 Rather than copy the 1+ GB directory with the data for this lesson a bunch of times (once for each person), we'll create a symbolic link to the data and copy over the bits that we will be modifying ourselves. Navigate to your home directory and do the following:
 
-```{{bash}}
+``` {{bash}}
 # go home
 cd ~ 
 
@@ -33,32 +34,33 @@ If you want to work locally (e.g. on your laptop), you can follow the instructio
 ### Challenge 1
 
 Based on the metadata, can you answer the following questions?
-```{{bash}}
+
+``` {{bash}}
 
 gen <- read.csv('Ecoli_metadata_composite.csv')
-
 ```
 
-* How many different generations exist in the data?
-```{{bash}}
+-   How many different generations exist in the data?
 
+``` {{bash}}
 
-
+> max(gen$generation)
+[1] 50000
 ```
-* How many rows and how many columns are in this data?
 
-```{{bash}}
+-   How many rows and how many columns are in this data?
+
+``` {{bash}}
 
 > ncol(gen)
 [1] 12
 > nrow(gen)
 [1] 62
-
 ```
 
-* How many citrate+ mutants have been recorded in Ara-3?
+-   How many citrate+ mutants have been recorded in Ara-3?
 
-```{{bash}}
+``` {{bash}}
 
 table(gen$cit)
 
@@ -66,40 +68,35 @@ table(gen$cit)
       1      12      10      39 
       
 #There are 10 citrate mutants
-
 ```
 
-* How many hypermutable mutants have been recorded in Ara-3?
+-   How many hypermutable mutants have been recorded in Ara-3?
 
-```{{bash}}
+``` {{bash}}
 
-table(gen$cit)
+> table(gen$mutator)
 
-          minus    plus unknown 
-      1      12      10      39 
-      
-#There are 10 citrate mutants
+     None plus 
+   8   48    6 
 
+> There aer 6 hypermutable mutants in Ara-3
 ```
-
 
 ## [Quality Control](https://datacarpentry.org/wrangling-genomics/02-quality-control/index.html)
 
 ### Challenge 2
 
-* What is the last read in the SRR2584863_1.fastq file?
+-   What is the last read in the SRR2584863_1.fastq file?
 
-> CCCFFFFFHHHHGJJJJJJJJJHGIJJJIJJJJIJJJJIIIIJJJJJJJJJJJJJIIJJJHHHHHFFFFFEEEEEDDDDDDDDDDDDDDDDDCDEDDBDBDDBDDDDDDDDDBDEEDDDD7@BDDDDDD>AA>?B?<@BDD@BDC?BDA?
+> CCCFFFFFHHHHGJJJJJJJJJHGIJJJIJJJJIJJJJIIIIJJJJJJJJJJJJJIIJJJHHHHHFFFFFEEEEEDDDDDDDDDDDDDDDDDCDEDDBDBDDBDDDDDDDDDBDEEDDDD7\@BDDDDDD\>AA\>?B?\<@BDD\@BDC?BDA?
 
-* How confident are you in this read?
-> Very confident. The quality scores are quite high.
-
+-   How confident are you in this read? \> Very confident. The quality scores are quite high.
 
 ### Challenge 3
 
 How big are the files in `untrimmed_fastq/` (show code and output)?
 
-```{{bash}}
+``` {{bash}}
 
 (snakemake) -bash-4.2$ ls -lh
 total 1.2G
@@ -112,92 +109,77 @@ lrwxrwxrwx. 1 johnson johnson   59 Sep 30  2020 NexteraPE-PE.fa -> /BIODATA/prog
 -r--r--r--. 1 johnson johnson 124M Sep  9  2020 SRR2589044_1.fastq.gz
 -r--r--r--. 1 johnson johnson 128M Sep  9  2020 SRR2589044_2.fastq.gz
 dr-xr-xr-x. 3 johnson johnson 4.0K Oct  6  2020 untouched_data
-
 ```
-
 
 ### Challenge 4
 
 After running `fastqc` on your untrimmed data, which sample(s) looks the best in terms of per base sequence quality? Which sample(s) look the worst?
 
-> SRR2584863_2.fastq.gz - worst
-> SRR2584866_2.fastq.gz -best
-
+> SRR2584863_2.fastq.gz - worst SRR2584866_2.fastq.gz -best
 
 ### Challenge 5
 
-Which samples failed at least one of FastQC’s quality tests? What test(s) did those samples fail?
+Which samples failed at least one of FastQC's quality tests? What test(s) did those samples fail?
 
-> SRR2584863_2_fastqc failed 
-* Per base sequence quality       
-* Per tile sequence quality       
-* Per base sequence content   
+> SRR2584863_2\_fastqc failed \* Per base sequence quality\
+> \* Per tile sequence quality\
+> \* Per base sequence content
 
-> SRR2584866_1.fastq.gz
-* Per base sequence quality       
-* Per base sequence content       
-* Adapter Content SRR2584866_1.fastq.gz
+> SRR2584866_1.fastq.gz \* Per base sequence quality\
+> \* Per base sequence content\
+> \* Adapter Content SRR2584866_1.fastq.gz
 
-> SRR2584866_2.fastq.gz failed: 
-* Adapter Content SRR2584866_2.fastq.gz
+> SRR2584866_2.fastq.gz failed: \* Adapter Content SRR2584866_2.fastq.gz
 
-> SRR2589044_1.fastq.gz failed:
-* Adapter Content SRR2589044_1.fastq.gz
+> SRR2589044_1.fastq.gz failed: \* Adapter Content SRR2589044_1.fastq.gz
 
-> SRR2589044_2.fastq.gz failed:
-* Per base sequence quality       
-* Per tile sequence quality       
-* Per base sequence content       
-* Adapter Content 
-
-
-
+> SRR2589044_2.fastq.gz failed: \* Per base sequence quality\
+> \* Per tile sequence quality\
+> \* Per base sequence content\
+> \* Adapter Content
 
 ## [Trimming and Filtering](https://datacarpentry.org/wrangling-genomics/03-trimming/index.html)
 
-```{{bash}}
+``` {{bash}}
 trimmomatic PE -threads 1 untrimmed_fastq/SRR2584863_1.fastq.gz untrimmed_fastq/SRR2584863_2.fastq.gz trimmed_fastq/SRR2584863_1.trimmed.fastq trimmed_fastq/SRR2584863_1un.trimmed.fastq trimmed_fastq/SRR2584863_2.trimmed.fastq trimmed_fastq/SRR2584863_2un.trimmed.fastq SLIDINGWINDOW:4:20 MINLEN:25 ILLUMINACLIP:untrimmed_fastq/NexteraPE-PE.fa:2:40:15
-
 ```
 
 ### Challenge 6
 
 Use the output from your Trimmomatic command to answer the following questions.
 
-* What percent of reads did we discard from our sample?
-> 18.11%
-* What percent of reads did we keep both pairs?
-> 81.89%
+-   What percent of reads did we discard from our sample? \> 18.11%
+-   What percent of reads did we keep both pairs? \> 81.89%
 
 ### Challenge 7
 
-We trimmed our fastq files with Nextera adapters, but there are other adapters that are commonly used. What other adapter files came with Trimmomatic?
-> In addition to Nextera, there are 5 other adapters: TruSeq2-SE.fa, TruSeq3-PE.fa, TruSeq2-PE.fa,   TruSeq3-PE-2.fa, TruSeq3-SE.fa
+We trimmed our fastq files with Nextera adapters, but there are other adapters that are commonly used. What other adapter files came with Trimmomatic? - In addition to Nextera, there are 5 other adapters: TruSeq2-SE.fa, TruSeq3-PE.fa, TruSeq2-PE.fa, TruSeq3-PE-2.fa, TruSeq3-SE.fa
 
-```{{bash}}
+``` {{bash}}
 
 ls /BIODATA/programs/Trimmomatic-0.39/adapters/
 NexteraPE-PE.fa  TruSeq2-SE.fa    TruSeq3-PE.fa
 TruSeq2-PE.fa    TruSeq3-PE-2.fa  TruSeq3-SE.fa
-
 ```
-
 
 ### Challenge 8
 
-Now that our samples have gone through quality control, they should perform better on the quality tests run by FastQC. Go ahead and re-run FastQC on your trimmed FASTQ files and visualize the HTML files to see whether your per base sequence quality is higher after trimming.
-> I looked at the files and they appeared to be higher quality.
-
+Now that our samples have gone through quality control, they should perform better on the quality tests run by FastQC. Go ahead and re-run FastQC on your trimmed FASTQ files and visualize the HTML files to see whether your per base sequence quality is higher after trimming. - I looked at the files and they appeared to be higher quality.
 
 ## [Variant Calling](https://datacarpentry.org/wrangling-genomics/04-variant_calling/index.html)
 
 ### Challenge 9
-We saved the reference genome as `data/ecoli_rel606.fasta.gz` and then decompressed it. What is the real name of the genome?
-> The real name is CP000819.1 Escherichia coli B str. REL606, complete genome
+
+We saved the reference genome as `data/ecoli_rel606.fasta.gz` and then decompressed it. What is the real name of the genome? - The real name is CP000819.1 Escherichia coli B str. REL606, complete genome
 
 ### Challenge 10
 
 Use the `grep` and `wc` commands you have learned to assess how many variants are in the vcf file.
+
+``` {{bash}}
+(base) -bash-4.2$ grep -v "#" results/vcf/SRR2584863_variants_final.vcf | wc -l
+25
+```
 
 ### Challenge 11
 

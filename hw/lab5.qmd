@@ -37,7 +37,6 @@ source('https://tinyurl.com/wjm6ryj') # colorblind palettes
 library(knitr)
 ```
 
-
 ## Canine confounders
 
 We'll be using a [COVID-19 dataset from Mexico City](bit.ly/3Ou4n2U) that was featured in an article in Significance Magazine titled [Canine Confounders](https://rss.onlinelibrary.wiley.com/doi/epdf/10.1111/1740-9713.01670) [@nunez2022].
