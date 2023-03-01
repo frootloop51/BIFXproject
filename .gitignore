@@ -12,3 +12,6 @@
 *.csv
 
 /.quarto/
+bioconductor-project-bioshock/
+
+final-frootloop51/

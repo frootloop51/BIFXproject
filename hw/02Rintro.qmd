@@ -33,7 +33,7 @@ Which of the following are valid R variable names?
     min-length
     2widths
     celsius2kelvin
-    
+
 Please see list of values below code box.
 
 ```{r}
@@ -50,19 +50,16 @@ celsius2kelvin =7
 
 ```
 
-
-* Valid
-  + min_height
-  + max.height
-  + .mass
-  + MaxLength
-  + celsius2kelvin
- 
-* Invalid
-  + _age
-  + min-length
-  + 2widths
-
+-   Valid
+    -   min_height
+    -   max.height
+    -   .mass
+    -   MaxLength
+    -   celsius2kelvin
+-   Invalid
+    -   \_age
+    -   min-length
+    -   2widths
 
 #### Challenge 2
 
@@ -98,7 +95,7 @@ if(mass > age){
 
 ```
 
-Yes, mass is larger than age. In the above code block I created an if, else if, else flow to test multiple scenarios to ensure I identified whether mass was larger than age. 
+Yes, mass is larger than age. In the above code block I created an if, else if, else flow to test multiple scenarios to ensure I identified whether mass was larger than age.
 
 #### Challenge 4
 
@@ -154,12 +151,12 @@ Open an RStudio project through the file system
 1.  Exit RStudio.
 2.  Navigate to your course project directory.
 3.  Create a new directory titled `hw/` and save this file into that directory.
-3.  Double click the `.Rproj` file in the rood directory of your course project repository.
-4.  Open this file in RStudio.
-4.  Take a screenshot of your RStudio session and place it in the `hw/img/` directory. It should have "BIFXproject - main - RStudio" in the header (or something similar).
-5.  Modify the line just below this to include your screenshot.
+4.  Double click the `.Rproj` file in the rood directory of your course project repository.
+5.  Open this file in RStudio.
+6.  Take a screenshot of your RStudio session and place it in the `hw/img/` directory. It should have "BIFXproject - main - RStudio" in the header (or something similar).
+7.  Modify the line just below this to include your screenshot.
 
-![](img\BIFXsnap.png)
+![](img%5CBIFXsnap.png)
 
 #### Challenge 3
 
@@ -172,7 +169,6 @@ data(gapminder)
 # let's take a look at the data we'll be working with
 gapminder
 ```
-
 
 ### [Seeking Help](https://swcarpentry.github.io/r-novice-gapminder/03-seeking-help/index.html)
 
@@ -197,28 +193,32 @@ a
 b
 c
 ```
+
 C is a function that combines values into vectors and reassigns all values into a common data type if necessary. For example, the first two vectors have uniform data types and do not need to be altered. But vector c is mixed with both numeric and character values and c ultimately converts all of these values into character values.
 
 #### Challenge 2
 
-Look at the help for the `paste` function. You will need to use it later. What’s the difference between the `sep` and `collapse` arguments?
+Look at the help for the `paste` function. You will need to use it later. What's the difference between the `sep` and `collapse` arguments?
 
 help(paste)
 
 **Sep is used to separate terms whereas collapse separates results.**
 
-### sep	
-a character string to separate the terms. Not NA_character_.
+### sep
+
+a character string to separate the terms. Not NA_character\_.
 
 ### collapse
-an optional character string to separate the results. Not NA_character_.
+
+an optional character string to separate the results. Not NA_character\_.
 
 #### Challenge 3
 
-Use help to find a function (and its associated parameters) that you could use to load data from a tabular file in which columns are delimited with “\t” (tab) and the decimal point is a “.” (period). This check for decimal separator is important, especially if you are working with international colleagues, because different countries have different conventions for the decimal point (i.e. comma vs period). 
+Use help to find a function (and its associated parameters) that you could use to load data from a tabular file in which columns are delimited with "\t” (tab) and the decimal point is a "." (period). This check for decimal separator is important, especially if you are working with international colleagues, because different countries have different conventions for the decimal point (i.e. comma vs period).
 
-:::{.callout-note collapse="true"}
+::: {.callout-note collapse="true"}
 # Hint
+
 Use `??"read table"` to look up functions related to reading in tabular data.
 :::
 
@@ -226,8 +226,6 @@ Use `??"read table"` to look up functions related to reading in tabular data.
 
 Using the read.delim function, we should be able to hanlde tabular data that is delimited with the "\t" and uses a decimal point (period).
 
-![](img\delim2.png)
+![](img%5Cdelim2.png)
 
 This function uses tab as the character separator and the dec value (the character used in the file for decimal points) is set to use periods)
-
-

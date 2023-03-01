@@ -1,0 +1,50 @@
+---
+title: "Bioconductor Methylation Workflow"
+author:
+- J. Jedediah Smith
+- Gerard Duncan
+- Ian Lacy
+format: revealjs
+editor: visual
+---
+
+## 
+
+## 2.5 Data Exploration
+
+-   Visualizing data is a key component of data exploration and can make it easier to understand results. In this workflow, we used multi-dimensional scaling plots (MDS). MDS plots are based on principal components analysis (PCA) and look at the similarities and differences between the various samples. Samples that are more like each other should cluster together, and samples that are different should be further apart on the plot.
+
+    -   PCA is a data reduction method that reduces the number of variables that account for the variance in the data and makes it easier to interpret large datasets.
+
+-   To plot this we used the 'plotMDS' function, a built-in function in R to handle this kind of data. It appears like ggplot2 with the ability to alter specific aspects of the plot.
+
+    ![](images/paste-564C452B.png)
+
+    ![](images/paste-18503046.png) .
+
+## 2.6 Filtering
+
+-   Like what we did with Trimmomatic when working with databases, this step requires that we filter out DNA probes that interfere with our analysis. This is because the signal from these probes is unreliable and removing allows us to perform fewer statistical tests.
+
+-   In this step, we begin by ordering the probes, then removing any probes that have failed in one or more samples. 
+
+-   While this dataset is entirely composed of male donors, filtering probes from both X and Y chromosomes can be done. 
+
+-   Similarly, single nucleotide polymorphisms (SNPs) - the most common type of genetic variation among people -- can also be filtered out of probes using the function minifi. 
+
+-   After filtering we can re-examined the data using MDS plots to see if the relationship between samples changed. In this workflow, you can see that removing the SNP-affected CpGs probes from the data changes the sample clustering in the MDS plots. 
+
+    ![](images/paste-4AD2360E.png)
+
+-   We then calculated the M-values, a measure of the number of molecules that are methylated or unmethylated and the beta value which roughly represents the percentage of a site that is methylated (Du et al, 2010).
+
+    ![](images/paste-9B697942.png)
+
+## 2.7 Probe-wise differential methylation analysis
+
+-   Like what we did with Trimmomatic when working with databases, this step requires that we filter out DNA probes that interfere with our analysis. This is because the signal from these probes is unreliable and removing allows us to perform fewer statistical tests.
+-   The focus of this dataset is discovering differentially methylated probes between different cell types. This style of analysis is called a paired analysis; differences between cell types are calculated within each individual, and then these differences are averaged across individuals to determine whether there is an overall significant difference in the mean methylation level for each CpG site.
+-   We were interested in pairwise comparisons between the four cell types. In this workflow, we analyzed the M-values in limma. This allowed us to obtain moderated t-statistics and associated p-values for each CpG site, sites where a cytosine is followed by guanine.
+-   Based on a false discovery rate of 5%, we found 3000 significantly differentially methylated CpGs in the naïve vs rTreg comparison. The rTreg/ act_rTreg did not show any significant differential methylation.
+
+![](images/paste-0B0F100C.png)
