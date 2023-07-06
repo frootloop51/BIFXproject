@@ -1,0 +1,361 @@
+---
+title: 'Final Exam: Building a  Neural Network Model with keras to Predict Breast
+  Cancer'
+author: "Ian Lacy"
+date: "2023-05-10"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+
+suppressMessages(library(readr))
+suppressMessages(library(keras))
+suppressMessages(library(caret))
+```
+
+
+## Introduction
+
+This analysis attempts to design a neural network model that predicts the outcome of cancer screenings.
+
+## Importing the Data
+
+We begin by importing the dataset from the CSV file. This will give us raw data that will require pre-processing before it can be added to keras.
+
+```{r}
+CancerFinal <- read_csv("C:/Users/ianla.000/Downloads/data.csv")
+
+```
+
+## Cleaning Data
+
+```{r}
+CancerFinal <- CancerFinal[,-33]
+#str(CancerFinal)
+#summary(CancerFinal)
+
+```
+
+If we were to display the data, we would see that most of the data is numeric except for the target variable diagnosis. For this reason we will need to code a dummy variable to convert this to a numeric value. I began by copying the unaltered data into a second dataframe: CancerFinal2. This is to prevent corrupting the original data.
+
+```{r}
+CancerFinal2 <- CancerFinal
+table(CancerFinal2$diagnosis)
+round(prop.table(table(CancerFinal2$diagnosis)) *100, digits =1)
+```
+I also generated a table to look at the distribution of the target variables. We can see that the values are unbalanced, so when I go to split the data into test and training sets I will use createDataPartition() to conduct a stratified split of the data to preserve the proportionality of the data.
+
+Next, I coded the dummy variable for the diagnosis column and will copy those values into a new column. The new dummy variables will define malignant,M, as 1 and benign, B, as 0. I will then remove the original column because having it in the middle of the data makes it difficult to remove it from the analysis.
+
+I also removed the columns id and diagnosis to reduce unnecessary/redundant variables.
+
+```{r}
+CancerFinal2$NewDiagnosis<- ifelse(CancerFinal2$diagnosis == "M", 0, 1) #recoded R column in new column and set M = 1 and B = 0
+
+CancerFinal2 <- subset(CancerFinal2, select = -c(id,diagnosis)) #used subsetting function to remove the original R column
+#str(CancerFinal2)
+#CancerFinal2
+
+```
+
+In this submission, I did not normalize the data. I tried normalizing the data in other runs but the graphs were all very linear looking and no amount of transformation made them improve. I believe this was due to some sort of underlying issue in the data. They were all related calculations, so normalizing them could have flattened the data to the point where the algorithm could not learn anything because all the data was so similar.  
+
+The testing and training data are converted to matrices because that allows keras to read the data properly. 
+
+Now that the data is stored as a matrix. I used an 80/20 split using the createDataParition function to preserve the ratios. I used this source to guide my code: https://olgabelitskaya.github.io/keras_cookbook_r.html 
+
+```{r}
+set.seed(123)
+Cancer_train <- createDataPartition(y=CancerFinal2$NewDiagnosis, p=0.8, list=FALSE)
+
+
+
+x_train <- as.matrix(CancerFinal2[Cancer_train, 1:30])
+x_test <- as.matrix(CancerFinal2[-Cancer_train, 1:30])
+
+y_train <- as.matrix(CancerFinal2[Cancer_train, 31])
+y_test <- as.matrix(CancerFinal2[-Cancer_train, 31])
+
+
+```
+
+
+## Creating Model
+
+Now that the data is cleaned we will create the model. I used this resource and used some of their code segments to structure my model: https://github.com/juanklopper/Deep-learning-using-R/blob/master/Deep%20neural%20network%20example%20using%20R.Rmd. 
+
+I used 30 for the number of nodes and the input shape because we have 30 feature variables in our data. I used sigmoid in the final layer because we are doing binary classification.
+
+Note: The model presented here is not the first model I ran. I had to keep adding layers to improve the loss of the model. The model below represents the best loss, base model.
+
+```{r}
+
+model <- keras_model_sequential()
+model %>% 
+  layer_dense(name = "DeepLayer1",
+              units = 30,
+              activation = "relu",
+              input_shape = c(30)) %>% 
+  layer_dense(name = "DeepLayer2",
+              units = 30,
+              activation = "relu") %>% 
+  layer_dense(name = "DeepLayer3",
+              units = 30,
+              activation = "relu") %>%
+  layer_dense(name = "DeepLayer4",
+              units = 30,
+              activation = "relu") %>%
+  layer_dense(name = "OutputLayer",
+              units = 1,
+              activation = "sigmoid")
+summary(model)
+
+```
+## Compiling the model
+
+Now that our model is set, we can compile the model by specifying the functions for our data. I used the binary_crossentropy loss function because we are analyzing a binary outcome. The rmsprop optimizer is used because "RMS prop also takes away the need to adjust learning rate, and does it automatically. More so, RMSProp choses a different learning rate for each parameter." (reference: https://blog.paperspace.com/intro-to-optimization-momentum-rmsprop-adam/#:~:text=RMSProp%20also%20tries%20to%20dampen,to%20the%20equations%20described%20below).
+
+
+
+```{r}
+model %>% compile(loss = "binary_crossentropy",
+                  optimizer = "rmsprop",
+                  metrics = c("accuracy"))
+```
+
+I then setup the model and set the epochs at 10, meaning it will run ten times. I set the batch size, the number of samples that propagate through the neural network before updating the model parameters, at 32 (https://hasty.ai/docs/mp-wiki/training-parameters/batch-size#:~:text=The%20batch%20size%20depicts%20the,and%20one%20full%20backward%20propagation). This seemed an appropriate number to allow an adequate number of adjustments without creating too much noise in the data.
+
+In the below step, I used the validation_split function because it gives an estimation of model performance.
+
+```{r}
+history <- model %>% 
+  fit(x_train,
+      y_train,
+      epoch = 10,
+      batch_size = 32,
+      validation_split = 0.1,
+      verbose = 2)
+```
+
+I also plotted the epochs performance and loss over time to show how the model improves as it iterates over the data.
+
+```{r}
+plot(history)
+```
+```{r}
+model %>% 
+  evaluate(x_test,
+           y_test)
+```
+```{r}
+## prediction 
+pred <- model %>% predict(x_test)
+y_pred = round(pred)
+
+# Confusion matrix
+CM = table(y_pred, y_test)
+
+CM
+
+```
+```{r}
+acc4 <- round((30+60)/(113), digits = 2)
+sprintf("Accuracy: %s", acc4)
+
+prec4<-round(30/(30+23), digits =2)
+sprintf("Precision: %s", prec4)
+
+rec4 <- round(30/(30+0),digits = 2)
+sprintf("Recall: %s", rec4)
+
+f_One4<-round(2*(prec4*rec4)/(prec4+rec4),digits = 2)
+sprintf("F-1: %s", f_One4)
+```
+
+As we can see, the model performs quite well and the computed accuracy is about 82%. But has low precision. 
+
+I also generated a confusion matrix (see above) to parse out more details about the data.
+
+
+## Improving the Model
+
+## Small Model
+
+It appears the model is overfit. This is most likely because there are so many parameters (30+). Based on the lecture slides, I will build a smaller model and see if this reduces overfitting. For this, I reduced the number of units to 15, or half the parameters compared to the original model.
+
+```{r}
+smaller_model <- keras_model_sequential()
+smaller_model %>% 
+  layer_dense(name = "DeepLayer1",
+              units = 15,
+              activation = "relu",
+              input_shape = c(30)) %>% 
+  layer_dense(name = "DeepLayer2",
+              units = 15,
+              activation = "relu") %>% 
+  layer_dense(name = "DeepLayer3",
+              units = 15,
+              activation = "relu") %>%
+  layer_dense(name = "DeepLayer4",
+              units = 15,
+              activation = "relu") %>%
+  layer_dense(name = "OutputLayer",
+              units = 1,
+              activation = "sigmoid")
+summary(smaller_model)
+```
+```{r}
+smaller_model %>% compile(loss = "binary_crossentropy",
+                  optimizer = "rmsprop",
+                  metrics = c("accuracy"))
+```
+
+```{r}
+smaller_history <- smaller_model %>% 
+  fit(x_train,
+      y_train,
+      epoch = 10,
+      batch_size = 32,
+      validation_split = 0.1,
+      verbose = 2)
+
+```
+```{r}
+smaller_model %>% 
+  evaluate(x_test,
+           y_test)
+```
+
+
+```{r}
+## prediction 
+pred_small <- smaller_model %>% predict(x_test)
+y_pred_small = round(pred_small)
+
+# Confusion matrix
+CM = table(y_pred_small, y_test)
+
+CM
+
+```
+```{r}
+acc1 <- round((50+51)/(113), digits = 2)
+sprintf("Accuracy: %s", acc1)
+
+prec1<-round(50/(50+3), digits =2)
+sprintf("Precision: %s", prec1)
+
+rec1 <- round(50/(50+9),digits = 2)
+sprintf("Recall: %s", rec1)
+
+f_One1<-round(2*(prec1*rec1)/(prec1+rec1),digits = 2)
+sprintf("F-1: %s", f_One1)
+```
+
+```{r}
+plot(smaller_history)
+```
+The smaller model  has a more desirable loss graph and higher overall accuracy, indicating this model is better fit. Additionally, the number of false positives and negatives are both small, indicating the model is generalizing well. 
+
+## L2 Regularization
+
+In an attempt to improve the model, we will use L2 regularization. L2 regularization is prevents overfitting by adding "...a penalty term proportional to the square of the model's parameters. This encourages the model to use all of the parameters but to reduce their values, resulting in a model that is less complex and less prone to overfitting" (reference: https://towardsdatascience.com/regularization-avoiding-overfitting-in-machine-learning-bb65d993e9cc#:~:text=L2%20regularization%2C%20also%20known%20as,and%20less%20prone%20to%20overfitting).
+
+```{r}
+L2_model <- keras_model_sequential()
+L2_model %>% 
+  layer_dense(name = "DeepLayer1",
+              units = 30,
+              kernel_regularizer = regularizer_l2(0.001),
+              activation = "relu",
+              input_shape = c(30)) %>% 
+  layer_dense(name = "DeepLayer2",
+              units = 30,
+              kernel_regularizer = regularizer_l2(0.001),
+              activation = "relu") %>% 
+  layer_dense(name = "DeepLayer3",
+              units = 30,
+              kernel_regularizer = regularizer_l2(0.001),
+              activation = "relu") %>%
+  layer_dense(name = "DeepLayer4",
+              units = 30,
+              kernel_regularizer = regularizer_l2(0.001),              
+              activation = "relu") %>%
+  layer_dense(name = "OutputLayer",
+              units = 1,
+              activation = "sigmoid")
+summary(L2_model)
+
+L2_model %>% compile(loss = "binary_crossentropy",
+                  optimizer = "rmsprop",
+                  metrics = c("accuracy"))
+```
+
+```{r}
+L2_model %>% 
+  evaluate(x_test,
+           y_test)
+```
+
+
+```{r}
+L2_history <- L2_model %>% 
+  fit(x_train,
+      y_train,
+      epoch = 10,
+      batch_size = 32,
+      validation_split = 0.1,
+      verbose = 2)
+
+plot(L2_history)
+```
+```{r}
+pred <- L2_model %>% predict(x_test)
+y_pred_L2 = round(pred)
+
+# Confusion matrix
+CM = table(y_pred_L2, y_test)
+
+CM
+```
+```{r}
+acc3 <- round((29+60)/(113), digits = 2)
+sprintf("Accuracy: %s", acc3)
+
+prec3<-round(29/(29+24), digits =2)
+sprintf("Precision: %s", prec3)
+
+rec3 <- round(29/(29+0),digits = 2)
+sprintf("Recall: %s", rec3)
+
+f_One3<-round(2*(prec3*rec3)/(prec3+rec3),digits = 2)
+sprintf("F-1: %s", f_One3)
+```
+
+This model has a higher number of false positives, but has very high recall. But given the lower accuracy, the smaller model still performs better.
+
+```{r}
+L2_model %>% 
+  evaluate(x_test,
+           y_test)
+```
+
+
+## Conclusion
+
+The initial model was definitely overfitted, but tweaking the model with to have fewer parameters (smaller model) improved the model's metrics and the loss graph, indicating it is a strong model.
+
+
+
+
+
+
+

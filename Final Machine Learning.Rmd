@@ -1,0 +1,188 @@
+---
+title: 'Final Exam: Building a  Neural Network Model with keras to Predict Breast
+  Cancer'
+author: "Ian Lacy"
+date: "2023-05-10"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+
+suppressMessages(library(readr))
+suppressMessages(library(keras))
+suppressMessages(library(caret))
+```
+
+
+## Introduction
+
+This analysis attempts to design a neural network model that predicts the outcome of cancer screenings.
+
+## Importing the Data
+
+We begin by importing the dataset from the CSV file. This will give us raw, unnormalized data that will require pre-processing before it can be added to keras.
+
+```{r}
+CancerFinal <- read_csv("C:/Users/ianla.000/Downloads/data.csv")
+
+```
+
+## Cleaning Data
+
+```{r}
+CancerFinal <- CancerFinal[,-33]
+#str(CancerFinal)
+#summary(CancerFinal)
+
+```
+
+If we were to display the data, we would see that most of the data is numeric except for the target variable diagnosis. For this reason we will need to code a dummy variable to convert this to a numeric value. I began by copying the unaltered data into a second dataframe: CancerFinal2. This is to prevent corrupting the original data.
+
+```{r}
+CancerFinal2 <- CancerFinal
+table(CancerFinal2$diagnosis)
+round(prop.table(table(CancerFinal2$diagnosis)) *100, digits =1)
+```
+I also generated a table to look at the distribution of the target variables. We can see that the values are unbalanced, but are probably close enough to not cause too many issues.
+
+Next, I coded the dummy variable for the diagnosis column and will copy those values into a new column. The new dummy variables will define malignant,M, as 1 and benign, B, as 0. I will then remove the original column because having it in the middle of the data makes it difficult to remove it from the analysis.
+
+I also removed the columns id and diagnosis to reduce unnecessary/redundant variables.
+
+```{r}
+CancerFinal2$NewDiagnosis<- ifelse(CancerFinal2$diagnosis == "M", 0, 1) #recoded R column in new column and set M = 1 and B = 0
+
+CancerFinal2 <- subset(CancerFinal2, select = -c(id,diagnosis)) #used subsetting function to remove the original R column
+#str(CancerFinal2)
+#CancerFinal2
+
+```
+
+On an early run of this data, I normalized the inputs but that led to graphs there were almost entirely linear. I assume this is something to do with these being calculated values and that by normalizing them the data became meaningless. So for the displayed analysis, the data is unnormalized. 
+
+For this next section, I followed the steps outlined in the this analysis to help separate my data: https://github.com/juanklopper/Deep-learning-using-R/blob/master/Deep%20neural%20network%20example%20using%20R.Rmd 
+
+```{r}
+CancerNorm <- as.matrix(CancerFinal2)
+#summary(CancerNorm)
+```
+
+Using the resource I found, I split the data using this randomly sampled index in an 80/20 split. I used the to_categorical function to one hot encode the data. 
+
+```{r}
+set.seed(123)
+indx <- sample(2,
+               nrow(CancerNorm),
+               replace = TRUE,
+               prob = c(0.8, 0.2)) # Makes index with values 1 and 2
+
+
+x_train <- CancerNorm[indx == 1, 1:30]
+x_test <- CancerNorm[indx == 2, 1:30]
+
+y_actual <- CancerNorm[indx == 2, 31]
+
+y_train <- to_categorical(CancerNorm[indx == 1, 31])
+y_test <- to_categorical(CancerNorm[indx == 2, 31])
+
+```
+
+## Creating Model
+
+Now that the data is cleaned we will create the model.
+
+I used 30 for the number of nodes and the input shape because we have 30 feature variables in our data. I used sigmoid in the final layer because we are doing binary classification.
+
+Note: The model presented here is not the first model I ran. I had to keep adding layers to improve the loss of the model. The model below represents the best loss, base model.
+
+```{r}
+
+model <- keras_model_sequential()
+model %>% 
+  layer_dense(name = "DeepLayer1",
+              units = 30,
+              activation = "relu",
+              input_shape = c(30)) %>% 
+  layer_dense(name = "DeepLayer2",
+              units = 30,
+              activation = "relu") %>% 
+  layer_dense(name = "OutputLayer",
+              units = 2,
+              activation = "softmax")
+summary(model)
+
+```
+## Compiling the model
+
+Now that our model is set, we can compile the model by specifying the functions for our data.
+
+```{r}
+model %>% compile(loss = "categorical_crossentropy",
+                  optimizer = "adam",
+                  metrics = c("accuracy"))
+```
+
+I then setup the model and set the epochs at 10, meaning it will run ten times. I set the batch size, the number of samples that propagate through the neural network before updating the model parameters, at 64 (https://hasty.ai/docs/mp-wiki/training-parameters/batch-size#:~:text=The%20batch%20size%20depicts%20the,and%20one%20full%20backward%20propagation). This seemed an appropriate number to allow an adequate number of adjustments without creating too much noise in the data.
+
+```{r}
+history <- model %>% 
+  fit(x_train,
+      y_train,
+      epoch = 20,
+      batch_size = 256,
+      validation_split = 0.1,
+      verbose = 2)
+```
+
+I also plotted the epochs performance and loss over time to show how the model improves as it iterates over the data.
+
+```{r}
+plot(history)
+```
+```{r}
+model %>% 
+  evaluate(x_test,
+           y_test)
+```
+```{r}
+
+pred <- model %>% predict(x_test)
+
+
+# Confusion matrix
+CM = table(pred, y_test)
+
+CM
+```
+As we can see, the model performs quite well and the computed accuracy is about 92%. But I also generated a confusion matrix (see above) to parse out more details about the data.
+
+```{r}
+acc1 <- round((44+58)/(113), digits = 2)
+sprintf("Accuracy: %s", acc1)
+
+prec1<-round(44/(44+2), digits =2)
+sprintf("Precision: %s", prec1)
+
+rec1 <- round(44/(44+9),digits = 2)
+sprintf("Recall: %s", rec1)
+
+f_One1<-round(2*(prec1*rec1)/(prec1+rec1),digits = 2)
+sprintf("F-1: %s", f_One1)
+```
+The above metric outputs confirm the accuracy computed in the previous code chunk.
+
+Precision, proportion of positive identifications, is also high at 96%. In our case, this means that when we predict a tumor is malignant, it is correct 96% of the time.
+
+Recall, proportion of actual positives, was 83%. This means we correctly identify 83% of malignant tumors.
+
+F-1 is also quite high at 89%, indicating that overall this model has strong predictive value.
+
+
