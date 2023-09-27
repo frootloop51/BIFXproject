@@ -1,0 +1,88 @@
+---
+title: 'Final Exam: Building a  Neural Network Model with keras to Predict Breast
+  Cancer'
+author: "Ian Lacy"
+date: "2023-09-27"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressMessages(library(readr))
+suppressMessages(library(ggplot2))
+suppressMessages(library(caret))
+
+```
+
+```{r}
+suppressMessages(library(tidyr))
+suppressMessages(library(dplyr))
+suppressMessages(library(reshape2))
+```
+
+```{r}
+MovieStuff <- read_csv("C:/Users/ianla.000/Downloads/cinema.csv")
+MovieStuff2 <- MovieStuff[1:40,1:9]
+MovieStuff2
+```
+```{r}
+MovieStuff2$Spain = as.numeric(as.character(MovieStuff2$Spain))
+MovieStuff2
+
+```
+
+```{r}
+ggplot(MovieStuff2, aes(x=year, y=total)) + geom_line()
+```
+```{r}
+ggplot(MovieStuff2, aes(x=year, y=Portugal)) + geom_line()
+```
+```{r}
+Movies3 <- MovieStuff2 %>% pivot_longer(cols = c('Spain', 'France', 'UK', 'USA'),
+    names_to = 'country',
+    values_to = 'productions')
+
+
+Movies4 <- MovieStuff2 %>% pivot_longer(cols = c('Portugal','Spain', 'France', 'UK', 'USA','other_countries'),
+    names_to = 'country',
+    values_to = 'productions')
+
+```
+
+```{r}
+Movies3
+Movies4
+```
+```{r}
+ggplot(Movies3, aes(x=year, y=productions)) + 
+  geom_line(aes(color=country))
+```
+
+```{r}
+Movies5 <- subset(Movies4, year %in% c(2018))
+
+Movies5 <- select(Movies5, -c("year","total", "co-productions"))
+Movies5
+
+```
+
+
+
+
+```{r}
+
+
+plot1<- ggplot(Movies5, aes(x='', y=productions, fill=country))+
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  geom_text(aes(y = productions/2 + c(0, cumsum(productions)[-length(productions)]),
+                label = percent(productions/sum_of_obsrv )), size=5)
+plot1
+```
+
+
