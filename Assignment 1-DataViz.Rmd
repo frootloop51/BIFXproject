@@ -1,11 +1,9 @@
 ---
-title: 'Final Exam: Building a  Neural Network Model with keras to Predict Breast
-  Cancer'
+title: 'Assignment 1: Cinema'
 author: "Ian Lacy"
-date: "2023-09-27"
+date: "2023-10-01"
 output:
   word_document: default
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -16,32 +14,73 @@ knitr::opts_chunk$set(echo = TRUE)
 suppressMessages(library(readr))
 suppressMessages(library(ggplot2))
 suppressMessages(library(caret))
-
-```
-
-```{r}
 suppressMessages(library(tidyr))
 suppressMessages(library(dplyr))
 suppressMessages(library(reshape2))
 ```
 
 ```{r}
-MovieStuff <- read_csv("C:/Users/ianla.000/Downloads/cinema.csv")
+suppressMessages(MovieStuff <- read_csv("C:/Users/ianla.000/Downloads/cinema.csv"))
 MovieStuff2 <- MovieStuff[1:40,1:9]
-MovieStuff2
-```
-```{r}
+#MovieStuff2
+
 MovieStuff2$Spain = as.numeric(as.character(MovieStuff2$Spain))
-MovieStuff2
+#MovieStuff2
+
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 ```
 
+## Problem 1
 ```{r}
-ggplot(MovieStuff2, aes(x=year, y=total)) + geom_line()
+plot1 <- ggplot(MovieStuff2, aes(x=year, y=total)) + 
+  geom_line()+
+  geom_point() +
+  scale_x_continuous(n.breaks =10)+
+  scale_y_continuous(n.breaks = 20)+
+  scale_colour_manual(values=cbbPalette)+
+  ggtitle("Figure 1:Total Number of Productions from Selected Countries from 1979 to 2018") +
+  xlab("Year") + 
+  ylab("Number of Productions")+
+  theme(plot.title = element_text(size=8, hjust=0.5))+  
+  theme(axis.title = element_text(size = 8))+
+  labs(caption = "Figure 1 summarizes distribution of annual number of movies produced globally.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))
+  
+
+plot1
+
 ```
+
+> *The above graph shows the combined annual totals for the number of movies produced per country (Portugal, Spain, UK, USA, France, and a catch all category called Other Countries). The graph shows that beginning in 1979 the global number of films decreased until 1994 and then nearly quadrupled from 1995 until 2010. The annual number of total films produced has remained between 550 and 650 from 2010 to 2018.*
+
+
+## Problem 2
+
 ```{r}
-ggplot(MovieStuff2, aes(x=year, y=Portugal)) + geom_line()
+plot2 <-ggplot(MovieStuff2, aes(x=year, y=Portugal)) + 
+  geom_line()+
+  geom_point() +
+  scale_x_continuous(n.breaks =10)+
+  scale_y_continuous(n.breaks = 10)+
+  scale_colour_manual(values=cbbPalette)+
+  ggtitle("Figure 2: Total Number of Productions from Portugal (1979 to 2018)") +
+  xlab("Year") + 
+  ylab("Number of Productions")+  
+  theme(plot.title = element_text(size=8, hjust=0.5))+  
+  theme(axis.title = element_text(size = 8))+
+  labs(caption = "Figure 2 summarizes distribution of annual number of movies produced in Portugal.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))
+
+plot2
 ```
+
+
+> *The above graph shows annual totals for the number of movies produced in Portugal from 1979 to 2018. The graph shows that the number of films decreased precipitously from a peak of more than 45 to about 3 per year in 1995. Since 1995, the annual totals have generally trended up ward apart from yearly changes in the total numbers of movies produced.*
+
+
+
+## Problem 3
 ```{r}
 Movies3 <- MovieStuff2 %>% pivot_longer(cols = c('Spain', 'France', 'UK', 'USA'),
     names_to = 'country',
@@ -52,37 +91,162 @@ Movies4 <- MovieStuff2 %>% pivot_longer(cols = c('Portugal','Spain', 'France', '
     names_to = 'country',
     values_to = 'productions')
 
+
 ```
 
-```{r}
-Movies3
-Movies4
-```
+> *The above code reassigns the country names so that each row is identified by a country.*
+
+
 ```{r}
 ggplot(Movies3, aes(x=year, y=productions)) + 
-  geom_line(aes(color=country))
+  geom_line(aes(color=country))+
+  geom_point(aes(color=country))+
+  scale_x_continuous(n.breaks =10)+
+  scale_y_continuous(n.breaks = 15)+
+  ggtitle("Figure 3: Comparing Number of Productions from France, Spain, UK, and USA (1979 to 2018)") +
+  xlab("Year") + 
+  ylab("Number of Productions")+
+  theme(plot.title = element_text(size=7, hjust=0))+  
+  theme(axis.title = element_text(size = 8))+
+  labs(caption = "Figure 3 compares the number of movies produced in France, Spain, UK, and USA from 1979 to 2018.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  theme(legend.title = element_text(size=8))+
+  scale_colour_manual(values = cbbPalette, name = "Country")
+
+
 ```
 
+>  *The above graph compares the annual total of movies produced in France, Spain, UK, and the USA. As we can see France and the UK have produced under 50 films per year. Spain produced very few films per year until the 1990s, with a peak of 960 in 1997. Unfortunately, there is no data about the number of movies produced from 1999 to 2003 and these were recorded as zero years per year. The USA is the only consistent producers of movies, with more than 100 movies produced per year from 1979 until 1994. The USA then rapidly increased the number of movies produced per year from 1994 to 2003. Since 2003, the USA has produced more than 300 movies per year.*
+
+## Problem 4
 ```{r}
 Movies5 <- subset(Movies4, year %in% c(2018))
 
 Movies5 <- select(Movies5, -c("year","total", "co-productions"))
-Movies5
+#Movies5
 
+ggplot(Movies5, aes(fill=country, y=productions, x='')) + 
+  geom_bar(position="stack", stat="identity")+
+  xlab("2018") + 
+  ylab("Number of Movies Produced")+
+  labs(caption = "Figure 4 compares the number of movies produced in France, Spain, UK, USA, and other countries in 2018.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Figure 4: Country Movie Production Total (2018)")+
+  theme(plot.title = element_text(size=8,hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))+
+  scale_fill_manual(name = "Country",values = cbbPalette, )
 ```
 
+> *The above chart shows that for the year 2018 that of the more than 400 movies produced that the USA accounted for nearly 350 of them. This shows that the USA produced the overwhelming majority of movies compared to all other countries.*
 
+## Problem 5
+```{r}
+Portugal <-sum(MovieStuff2$Portugal)
+Spain <- sum(MovieStuff2$Spain)
+France <- sum(MovieStuff2$France)
+UK <- sum(MovieStuff2$UK)
+USA <-sum(MovieStuff2$USA)
+Other <- sum(MovieStuff2$other_countries)
+Produced <- c(Portugal, Spain, France, UK, USA, Other)
+Country <- c("Portugal", "Spain", "France", "UK", "USA", "Other")
+
+USAVersusTotal <- data.frame(Produced, Country)
+
+
+USAStack <- ggplot(USAVersusTotal, aes(fill=Country, y=Produced, x='')) + 
+  geom_bar(position="stack", stat="identity")+
+  xlab("1979 - 2018") + 
+  ylab("Number of Movies Produced")+
+  labs(caption = "Figure 5 compares the number of movies produced in France, Spain, UK, and USA from 1979 to 2018.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Figure 5: Comparison of USA Movie to Global Totals (1979 to 2018)")+
+  theme(plot.title = element_text(size=8,hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))+
+  scale_fill_manual(values = cbbPalette)
+  
+
+
+
+USAStack 
+```
+
+> *The above graph shows of the more than 16,000 films produced that he USA has produced more than 10,000 of them. This represents an overwhelming majority - nearly two thirds - of the total films produced globally.*
+
+## Problem 6
+```{r}
+Movies6 <- Movies4[Movies4$country %in% c('UK', 'USA'), ]
+Movies6 <- select(Movies6, -c("total", "co-productions"))
+#Movies6
+```
 
 
 ```{r}
+ggplot(Movies6, aes(x=year, y=productions)) + 
+  geom_point(aes(color=country))+
+  scale_colour_manual(name = "Country", values = cbbPalette)+
+  xlab("Year") + 
+  ylab("Number of Productions")+
+  labs(caption = "Figure 6 compares the number of movies produced in the UK and USA from 1979 to 2018.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Figure 6: Comparing Number of Productions from UK and USA (1979 to 2018)")+
+  theme(plot.title = element_text(size= 8,hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))
 
 
-plot1<- ggplot(Movies5, aes(x='', y=productions, fill=country))+
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start=0) +
-  geom_text(aes(y = productions/2 + c(0, cumsum(productions)[-length(productions)]),
-                label = percent(productions/sum_of_obsrv )), size=5)
-plot1
+
+
 ```
+
+> *The above graph examines the correlation between the number of films produced in the UK and USA from 1979 to 2018. This graphs shows there is almost no correlation between the movies produced in either country. UK's numbers stay relatively flat while the USA sees an overall increase.*
+
+```{r}
+Movies7 <- Movies4[Movies4$country %in% c('USA', 'France'), ]
+Movies7 <- select(Movies7, -c("total", "co-productions"))
+#Movies7
+```
+
+```{r}
+  ggplot(Movies7, aes(x=year, y=productions)) + 
+  geom_point(aes(color=country))+
+  scale_colour_manual(name = "Country", values = cbbPalette)+
+  xlab("Year") + 
+  ylab("Number of Productions")+
+  labs(caption = "Figure 7 compares the number of movies produced in France and USA from 1979 to 2018.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Comparing Number of Productions from France and USA (1979 to 2018)")+
+  theme(plot.title = element_text(size = 8, hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))
+```
+
+> *The above graph examines the correlation between the number of films produced in France and USA from 1979 to 2018. This graphs shows there is almost no correlation between the movies produced in either country. France's numbers stay relatively flat while the USA sees an overall increase.*
+
+## Problem 7
+```{r}
+Movies8 <- subset(Movies4, country %in% c("Portugal"))
+
+Movies8 <- select(Movies8, -c("total", "co-productions"))
+#Movies8
+
+```
+
+```{r}
+ggplot(Movies8, aes(x='', y=productions)) +
+  geom_boxplot(aes(fill=country))+
+  scale_fill_manual(values = "#E69F00", name = "Country")+
+  xlab("") + 
+  ylab("Number of Productions")+
+  labs(caption = "Figure 8 looks at the distribution of movies produced in Portugal from 1979 to 2018.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Figure 8: Distribution of Productions in Portugal (1979 to 2018)")+
+  theme(plot.title = element_text(size=8,hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))
+```
+
+> *The above graph looks at the distribution of annual movie production in Portugal from 1979 to 2018. The graph shows that there are only two outliers over the nearly 40 year period of interest.*
 
 
