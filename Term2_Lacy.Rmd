@@ -1,0 +1,325 @@
+---
+title: 'Assignment 2: Fix the Graphs'
+author: "Ian Lacy"
+date: "2023-10-24"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+matplotlib <- import("matplotlib")
+matplotlib$use("Agg", force = TRUE)
+```
+
+```{r}
+suppressMessages(library(readr))
+suppressMessages(library(ggplot2))
+suppressMessages(library(caret))
+suppressMessages(library(tidyr))
+suppressMessages(library(dplyr))
+suppressMessages(library(reshape2))
+suppressMessages(library(tidyr))
+```
+
+```{python}
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import pandas as pd 
+
+
+
+```
+
+
+
+```{r}
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
+
+## Graph 1
+
+```{r}
+Percent <- c(62, 54, 54)
+Party <- c("Democrats", "Republicans", "Independents")
+
+PartyTotal <- data.frame(Party, Percent)
+PartyTotal
+
+plot1 <- ggplot(PartyTotal, aes(x=Party, y=Percent, fill = Party)) + 
+  geom_bar(stat="identity")+
+ scale_fill_manual(name = "Party",values = cbbPalette, )+
+  labs(caption = "Percent of those who agree with the Supreme Court by political party.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Percent Who Agreed With Court by Party (2018)")+
+  theme(plot.title = element_text(size=8,hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))
+
+plot1 
+```
+
+> *The original graph was in black in white and did not show the y-axis start at 0. Presenting the graph in black and white makes it difficult to immediately distinguish between the three data categories and not starting the graph at zero biases the data to make it look like Democrats overwhelmingly support the court compared to Republicans and Independents. This is not the case, as Democrats only support the court by about six percentage points. Another issue is that the graph shows percentages by party instead of the absolute number of people.*
+> *So what I did was make the graph color blind friendly and start the graph's y-axis at zero to show the relative difference between parties is not that great. I couldn't show absolute count data because it was not provided, so this the best I can do. I also added a caption to briefly explain the data.*
+
+## Graph 2
+
+```{r}
+Deaths <- c(873,805,795,800,750,700,690,650,625,590,490,500,505,550,590,550,510,750,810,790,700,690,700,705,721)
+Year <- c(1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013
+)
+
+FLGunDeaths <- data.frame(Year, Deaths)
+FLGunDeaths
+
+plot2 <- ggplot(FLGunDeaths, aes(x=Year, y=Deaths)) + 
+  geom_area(fill = "#D55E00")+
+  geom_point() +
+  ggtitle("Number of Florida Gun Deaths Per Year (1989 to 2013)") +
+  xlab("Year") + 
+  ylab("Deaths")+  
+  theme(plot.title = element_text(size=8, hjust=0.5))+  
+  theme(axis.title = element_text(size = 8))+
+  labs(caption = "This graph displays gun death data from 1989 to 2013. It shows a massive spike in gun deaths after 2005, the year in which the 'Stand Your Ground' law was enacted.")+
+  theme(plot.caption = element_text(size=6,hjust = 0))
+
+plot2
+```
+
+> *The original graph is inverted (the y-axis is flipped so that zero is at the top and higher numbers are near the bottom), making it appear that there is a dramatic drop in gun deaths after Florida passed the "Stand your Ground" law. In the caption it also says number of murders and not gun deaths. This misleading because murders are a specific crime whereas gun deaths are not.*
+> *I fixed this by starting the y-axis at the bottom and changing the caption to say gun deaths instead of murders. I also used a colorblind friendly color to fill in the area under the line graph instead of the original red.*
+
+
+## Graph 3
+
+```{r}
+Date <- c("March 27", "March 31")
+Enrollees <- c(6000000, 7066000)
+
+OBAMA <- data.frame(Date, Enrollees)
+OBAMA
+
+plot3 <- ggplot(OBAMA, aes(x=Date, y=Enrollees)) + 
+  geom_bar(stat = "identity", fill = "#009E73" )+
+  scale_y_continuous(labels = scales::label_number_si())+
+  labs(caption = "Obamacare enrollees in March of 2014.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Obamacare Enrollment (2014)")+
+  theme(plot.title = element_text(size=8,hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))
+
+plot3
+```
+
+> *The original graph was misleading because it did not accurately represent the two columns compared to one another. The March 27 column looked significantly smaller and not proportional to the March 31 graph. Also, the original did not have labels on  the y-axis, providing no frame of reference for viewers. .*
+> *I fixed this by introducing a y-axis that properly scaled the graph. I also changed the color of the bar charts to a color-blind-friendly choice.*
+
+
+## Graph 4
+```{python}
+UKStuff = pd.DataFrame({'Independence': ['Against', 'For'], 
+                          'Responses': [52, 48]})
+                          
+UKStuff
+```
+
+```{python}
+UKStuff.groupby(['Independence']).sum().plot( 
+    kind='pie', y='Responses',  
+  autopct='%1.0f%%', colors=CB_color_cycle ) 
+  plt.show()
+```
+```{r}
+Independence <- c("Against", "For")
+Responses <- c(52, 48)
+UKStuff1 <- data.frame(Independence, Responses)
+UKStuff1
+```
+
+
+```{r}
+ggplot(UKStuff1, aes(fill= Independence, y=Responses, x='')) + 
+  geom_bar(position="stack", stat="identity")+
+  xlab("2018") + 
+  ylab("Number of Movies Produced")+
+  labs(caption = "Figure 4 compares the number of movies produced in France, Spain, UK, USA, and other countries in 2018.")+
+  theme(plot.caption = element_text(size=8,hjust = 0))+
+  ggtitle("Figure 4: Country Movie Production Total (2018)")+
+  theme(plot.title = element_text(size=8,hjust=0.5))+
+  theme(axis.title = element_text(size = 8))+
+  theme(legend.title = element_text(size=8))+
+  scale_fill_manual(name = "Country",values = cbbPalette, )
+```
+
+
+
+> *The original graph is just wrong. It's a pie chart that adds up to more than 100%. There was clearly an error in creating it. I'm assuming the creators meant to put 48% instead of 58%. That being said, there is nothing I can do to fix this graph because I do not have the underlying data. In fact, it turns out that CNN actually completely misrepresented the data. The poll this graphic is based on actually found 52% against indepedence and 48 in favor: https://www.businessinsider.com/cnn-made-a-huge-mistake-on-a-scotland-independence-poll-2014-9.*
+> *In line witht the Business Insider article above, I presented a graphic that would appropriately visualize the data.*
+
+
+
+## Graph 5
+> *Similar to graph 4, this is also just wrong. The proportion of Yes to No answers adds up to 99% when it should add up to 100%. Additionally, visually these proportions should be almost equal but the No proportion of the graph looks like it accounts for almost two-thirds of responses and the Yes responses look like they account for about a third. So visually, the graph is is incorrect. Finally, the colors are too similar and need to contrast more for viewers to easily delineate between the categories*
+> *While I can't actually correct this graph because it is just wrong, I would start by accurately representing the proportions to one another. Then, I would change the colors to a color-blind-friendly palette and make sure they contrast one another.*
+
+
+## Graph 6
+```{r}
+
+```
+
+
+
+
+## Graph 7
+```{python}
+HighSchool = pd.DataFrame({'Grade': ['Freshman', 'Sophomore', 'Junior',  
+                                   'Senior'], 
+                          'Responses': [25, 25, 25, 25]})
+                          
+HighSchool  
+
+
+```
+```{python}
+CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
+                  '#f781bf', '#a65628', '#984ea3',
+                  '#999999', '#e41a1c', '#dede00']
+```
+
+```{python}
+Highschool1 = HighSchool.groupby(['Grade']).sum().plot( 
+    kind='pie', y='Responses',  
+        labels=None,  
+  autopct='%1.0f%%', colors=CB_color_cycle, legend = None)
+  
+  plt.show(Highschool1)
+```
+> *This graph has a number of issues. One, the colors are too similar to distinguish between the groups, two, the percentages add up to more than 100% which makes zero sense (should always be a portion of 100%). And three, the proportions for the graph are wrong given that they are all equal.*
+> *While I can't actually correct everything that is wrong with this graph, I can do my best to correct the proportionality of the segments and the colors. I'm assuming that the 26% from each category is a keystroke error and the original authors meant to put 25%. As you can see, this make the graph segments equal. Secondly, I auto-assigned color blind friendly colors that contrast well so that all readers can see distinct segments.*
+
+## Graph 8
+```{r}
+Month <- c("Jan. 2012", "Feb. 2012", "Mar. 2012", "Apr. 2012", "May 2012", "Jun. 2012", "Jul. 2012", "Aug. 2012", "Sep. 2012", "Oct. 2012", "Nov. 2012", "Dec. 2012", "Jan. 2013")
+Price <- c(3.17, 3.85, 4.26, 4.15, 4.01, 3.9, 3.6, 3.74, 3.9, 3.4, 3.45, 3.5, 3.57)
+GasStuff1 <- data.frame(Month, Price)
+GasStuff1$Month <- factor(GasStuff1$Month, levels = GasStuff1$Month)
+GasStuff1
+```
+
+```{r}
+Gasplot <- ggplot(GasStuff1, aes(x=Month, y=Price,group =1)) + 
+  geom_point(color = "#0072B2")+
+  geom_line()+
+  theme(axis.text.x=element_text(angle=45,hjust=1))+
+  ggtitle("Gas Prices (Jan. 2012 to Jan. 2013") +
+  xlab("Month and Year") + 
+  ylab("Gas Prices (USD)")+  
+  theme(plot.title = element_text(size=10, hjust=0.5))+  
+  theme(axis.title = element_text(size = 10))
+  
+
+Gasplot
+
+```
+
+
+> *The original misleads the viewer in several ways. First, the uses vague time points like "Last year" and "Last week" instead of listing actual dates. Also, it excludes data between time points so it only gives the impression of rising prices while prices may have fallen between the time points. This combined issues skew the data in such a way that it shows continuous increases when there may be data that was omitted that shows a more cyclical nature to the data. They are also mixing between weeks and months when it comes to their time points, so there are some inconsistencies there.*
+> *I would fix this by plotting all the data by month over the course of the year this data appears to try and represent. Showing data by month instead of by week also will show 12 data points instead of 52, making the graph more readable while not losing important data. I also made the points blue for some level of contrast. As a note, this data is just made up by me, so it may not reflect the actual data. Just showing how this data could be graphed to be more complete and less misleading.*
+
+## Graph 9
+```{python}
+Credit = pd.DataFrame({'Score': ['634', '216'], 
+                          'Credit Score': [634, 216]})
+                          
+Credit 
+
+
+CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
+                  '#f781bf', '#a65628', '#984ea3',
+                  '#999999', '#e41a1c', '#dede00']
+```
+
+```{python}
+Credit = Credit.groupby(['Score']).sum().plot( 
+    kind='pie', y='Credit Score', colors=CB_color_cycle, legend = None)
+  
+  plt.show(Credit)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Graph 10
+```{python}
+
+Prez = pd.DataFrame({'Approval': ['Approve', 'Disapprove', 'Neither'], 
+                          '': [88, 9, 2]})
+                          
+
+Prez
+
+
+CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
+                  '#f781bf', '#a65628', '#984ea3',
+                  '#999999', '#e41a1c', '#dede00']
+                 
+```
+
+```{python}
+Prez1 = Prez.plot( 
+    kind='pie', 
+    figsize=(15,6),
+    autopct='%1.1f%%', 
+    startangle=90,    
+    shadow=True,       
+    labels=None,         # turn off labels on pie chart
+    pctdistance=1.12,    # the ratio between the center of each pie slice and the start of the text generated by autopct 
+                            )
+  
+  plt.show(Prez1)
+```
+> *The original misleads the viewer in several ways. First, it doesn't add up to 100%, so it is omitting data. Second, it is just a table so the data is not actually visualized in a meaningful way. Third, It highlights the approval number, drawing the viewer away from the Disapproval metric.*
+> *I fixed this by creating a pie chart that is color-blind friendly. I added a third category called "Neither" to capture the missing 2% in the original table. I believe these improvements improve the graph and address issues with how the data was presented.*
+
+
+## Graph 11
+```{r}
+
+School <- c('Georgia', 'Alabama', 'Auburn', "Mississippi State", "Florida", "Texas A&M", "Missouri", "South Carolina", "Ole Miss", "LSU", "Arkansas", "Tennessee", "Kentucky", "Vanderbilt")
+Projected_Wins <- c(10.9, 10.8, 9.1, 8.4,8.1,7.4,7.3,7.3,6.3,6.2,5.9,5.8,5.4,3.9)
+                          
+School_FB <- data.frame(School, Projected_Wins)
+School_FB <- arrange(School_FB, Projected_Wins)
+School_FB$School <- factor(School_FB$School, levels = School_FB$School)
+
+School_FB
+
+```
+
+
+
+```{r}
+ggplot(School_FB, aes(x = School, fill=School, y = Projected_Wins)) +
+  geom_col() +
+  labs(x = "School Name", y = "Projected Wins") +
+  ggtitle("Projected Win Totals for College Teams (2018)")+
+   geom_text(aes(label = Projected_Wins), hjust = 1.5, vjust = .5)+
+theme(legend.position="none")+
+  coord_flip()
+
+
+
+```
+
