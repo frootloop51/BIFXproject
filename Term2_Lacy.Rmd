@@ -113,56 +113,66 @@ plot3 <- ggplot(OBAMA, aes(x=Date, y=Enrollees)) +
 plot3
 ```
 
-> *The original graph was misleading because it did not accurately represent the two columns compared to one another. The March 27 column looked significantly smaller and not proportional to the March 31 graph. Also, the original did not have labels on  the y-axis, providing no frame of reference for viewers. .*
+> *The original graph was misleading because it did not accurately represent the two columns compared to one another. The March 27 column looked significantly smaller and not proportional to the March 31 graph. Also, the original did not have labels on  the y-axis, providing no frame of reference for viewers.*
 > *I fixed this by introducing a y-axis that properly scaled the graph. I also changed the color of the bar charts to a color-blind-friendly choice.*
 
 
 ## Graph 4
 ```{python}
-UKStuff = pd.DataFrame({'Independence': ['Against', 'For'], 
-                          'Responses': [52, 48]})
-                          
-UKStuff
+
+labels1='For', 'Against' 
+sizes1 = [52, 48]
+
+CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
+                  '#f781bf', '#a65628', '#984ea3',
+                  '#999999', '#e41a1c', '#dede00']                          
 ```
 
 ```{python}
-UKStuff.groupby(['Independence']).sum().plot( 
-    kind='pie', y='Responses',  
-  autopct='%1.0f%%', colors=CB_color_cycle ) 
-  plt.show()
+explode = (0.1, 0.1)
+
+B = fig, ax = plt.subplots()
+  ax.pie(sizes1, shadow = True, explode = explode, labels = None, autopct='%1.1f%%',pctdistance=1.25, startangle=90,radius=.8)
+      colors=CB_color_cycle
+      plt.legend(labels=labels1,loc= "lower left", fontsize="8")
+plt.title('UKers For or Against Scottish Independence?', size=10, weight="bold") 
+  plt.show(B)
 ```
-```{r}
-Independence <- c("Against", "For")
-Responses <- c(52, 48)
-UKStuff1 <- data.frame(Independence, Responses)
-UKStuff1
-```
-
-
-```{r}
-ggplot(UKStuff1, aes(fill= Independence, y=Responses, x='')) + 
-  geom_bar(position="stack", stat="identity")+
-  xlab("2018") + 
-  ylab("Number of Movies Produced")+
-  labs(caption = "Figure 4 compares the number of movies produced in France, Spain, UK, USA, and other countries in 2018.")+
-  theme(plot.caption = element_text(size=8,hjust = 0))+
-  ggtitle("Figure 4: Country Movie Production Total (2018)")+
-  theme(plot.title = element_text(size=8,hjust=0.5))+
-  theme(axis.title = element_text(size = 8))+
-  theme(legend.title = element_text(size=8))+
-  scale_fill_manual(name = "Country",values = cbbPalette, )
-```
-
-
-
 > *The original graph is just wrong. It's a pie chart that adds up to more than 100%. There was clearly an error in creating it. I'm assuming the creators meant to put 48% instead of 58%. That being said, there is nothing I can do to fix this graph because I do not have the underlying data. In fact, it turns out that CNN actually completely misrepresented the data. The poll this graphic is based on actually found 52% against indepedence and 48 in favor: https://www.businessinsider.com/cnn-made-a-huge-mistake-on-a-scotland-independence-poll-2014-9.*
 > *In line witht the Business Insider article above, I presented a graphic that would appropriately visualize the data.*
 
 
 
 ## Graph 5
-> *Similar to graph 4, this is also just wrong. The proportion of Yes to No answers adds up to 99% when it should add up to 100%. Additionally, visually these proportions should be almost equal but the No proportion of the graph looks like it accounts for almost two-thirds of responses and the Yes responses look like they account for about a third. So visually, the graph is is incorrect. Finally, the colors are too similar and need to contrast more for viewers to easily delineate between the categories*
-> *While I can't actually correct this graph because it is just wrong, I would start by accurately representing the proportions to one another. Then, I would change the colors to a color-blind-friendly palette and make sure they contrast one another.*
+```{python}
+
+labels='Yes', 'No', 'Neither' 
+sizes = [50, 49, 1]
+                          
+CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
+                  '#f781bf', '#a65628', '#984ea3',
+                  '#999999', '#e41a1c', '#dede00']      
+
+```
+
+
+
+
+
+```{python}
+explode = (0.1, 0.1, 0.1)
+
+A = fig, ax = plt.subplots()
+  ax.pie(sizes, shadow = True, explode = explode, labels = None, autopct='%1.1f%%',pctdistance=1.25, startangle=90,radius=.8)
+      colors=CB_color_cycle
+      plt.legend(labels=labels,loc='best', bbox_to_anchor=(-1.0, .5), fontsize="8")
+plt.title('Are A-Levels Getting Harder?', size=10, weight="bold") 
+  plt.show(A)
+```
+
+
+> *Similar to graph 4, this is also just wrong. The proportion of Yes to No answers adds up to 99% when it should add up to 100%. Additionally, visually these proportions should be almost equal but the No proportion of the graph looks like it accounts for almost two-thirds of responses and the Yes responses look like they account for about a third. So visually, the graph is is incorrect. The graph is also missing the one percent one I assume did agree with yes or no and I called that neither.  Finally, the colors are too similar and need to contrast more for viewers to easily delineate between the categories*
+> *I created a graph that included the neither category and showed proper proportionality. Then, I changed the colors to a color-blind-friendly palette.*
 
 
 ## Graph 6
@@ -175,29 +185,27 @@ ggplot(UKStuff1, aes(fill= Independence, y=Responses, x='')) +
 
 ## Graph 7
 ```{python}
-HighSchool = pd.DataFrame({'Grade': ['Freshman', 'Sophomore', 'Junior',  
-                                   'Senior'], 
-                          'Responses': [25, 25, 25, 25]})
-                          
-HighSchool  
 
+labels2='Freshman','Sophomore', 'Junior', 'Senior' 
+sizes2 = [25, 25, 25, 25]
 
-```
-```{python}
 CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
                   '#f781bf', '#a65628', '#984ea3',
-                  '#999999', '#e41a1c', '#dede00']
+                  '#999999', '#e41a1c', '#dede00']                          
 ```
 
 ```{python}
-Highschool1 = HighSchool.groupby(['Grade']).sum().plot( 
-    kind='pie', y='Responses',  
-        labels=None,  
-  autopct='%1.0f%%', colors=CB_color_cycle, legend = None)
-  
-  plt.show(Highschool1)
+explode = (0.1, 0.1, 0.1, 0.1)
+
+C = fig, ax = plt.subplots()
+  ax.pie(sizes2, shadow = True, labels = None, autopct='%1.1f%%',pctdistance=1.25, startangle=90,radius=1)
+      colors=CB_color_cycle
+      plt.legend(labels=labels2,loc='center right', bbox_to_anchor=(1.25, .5)
+, fontsize="8")
+plt.title('What Grade Are you In?', size=10, weight="bold") 
+  plt.show(C)
 ```
-> *This graph has a number of issues. One, the colors are too similar to distinguish between the groups, two, the percentages add up to more than 100% which makes zero sense (should always be a portion of 100%). And three, the proportions for the graph are wrong given that they are all equal.*
+> *This graph has a number of issues. One, the colors are too similar to distinguish between the groups, two, the percentages add up to more than 100% which makes zero sense (should always be a portion of 100%). And three, the proportions for the graph are wrong given that they are all close to being equal.*
 > *While I can't actually correct everything that is wrong with this graph, I can do my best to correct the proportionality of the segments and the colors. I'm assuming that the 26% from each category is a keystroke error and the original authors meant to put 25%. As you can see, this make the graph segments equal. Secondly, I auto-assigned color blind friendly colors that contrast well so that all readers can see distinct segments.*
 
 ## Graph 8
@@ -230,34 +238,39 @@ Gasplot
 > *I would fix this by plotting all the data by month over the course of the year this data appears to try and represent. Showing data by month instead of by week also will show 12 data points instead of 52, making the graph more readable while not losing important data. I also made the points blue for some level of contrast. As a note, this data is just made up by me, so it may not reflect the actual data. Just showing how this data could be graphed to be more complete and less misleading.*
 
 ## Graph 9
-```{python}
-Credit = pd.DataFrame({'Score': ['634', '216'], 
-                          'Credit Score': [634, 216]})
-                          
-Credit 
+```{r}
+install.packages("plotly")
+library(plotly)
 
-
-CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
-                  '#f781bf', '#a65628', '#984ea3',
-                  '#999999', '#e41a1c', '#dede00']
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
 
-```{python}
-Credit = Credit.groupby(['Score']).sum().plot( 
-    kind='pie', y='Credit Score', colors=CB_color_cycle, legend = None)
-  
-  plt.show(Credit)
+```{r}
+fig <- plot_ly(
+    domain = list(x = c(0, 1), y = c(0, 1)),
+    value = 634,
+    title = list(text = "Your Credit Score"),
+    type = "indicator",
+    mode = "gauge+number",
+      gauge = list(
+      axis =list(range = list(300, 850)),
+      steps = list (
+        list(range = c(300, 579), color = "#D55E00"),
+        list(range = c(580, 669), color = "#E69F00"),
+        list(range = c(670, 739), color = "#F0E442"),
+        list(range = c(740, 799), color = "#40B0A6"),
+        list(range = c(800, 850), color = "#009E73")),
+      bar = list(color = "#000000")
+    
+    ))
+
+fig <- fig %>%
+  layout(margin = list(l=40,r=40))
+
+fig
 ```
-
-
-
-
-
-
-
-
-
-
+> *The or original graph is misleading for several reasons. One, it has no scaling/proportionality meaning that the unfilled portion of the image should be much smaller since 634 is a significant portion of 700. Similarly, we do not know where this chart begins numerically because there is not scale. Another similar issue is that credit scores go to 850, not 700, so the entire basis of the graph is off. Second, the coloring for the graph is too similar for someone with colorblindness to see the differences. Three, there are no visual delineations about how this score aligns to the score out of 850, making this graph essentially meaningless.*
+> *I attempted to correct this by making a gauge plot that ranges from 300 to 850 (the actual range of credit scores) and provided visual delineations. I also added color blind friendly colors. The code I used does not allow for a legend, so I was not able to add what the colors mean, but I think the colors and numbers have a logical flow to indicate that orange is bad and green is good.*
 
 
 
@@ -322,4 +335,19 @@ theme(legend.position="none")+
 
 
 ```
+> *The original graph is not in descending order so it is not easy to immediately determine which team is projected to have the most wins.*
+> *I fixed this by creating a horizontal bar chart that lists the schools by the number of projected wins in descending order. I did not add a colorblind palette, but that is another addition one could make to improve the graph further.*
 
+## Graph 12
+
+> *The original graph is misleading because it shows three different speed gauges that are mathematically similar, but the gauges are not proportional/do not have any scaling/units to provide context per gauge. All three values, 29, 619, 31, 786, and 26, 876 are fairly close to one another, but the middle gauge for Microsoft Edge (31,786) is maxed out/completely full where as Google Chrome (29,619) is only two-thirds full but is only 2,000 less than Microsoft Edge. Clearly, these graphs are not proportional and all graphs should have the same scale such as all of them topping out at 45,000.*
+
+
+## Graph 13
+> *FILL IN.*
+
+##Graph 14
+> *Graph 14 suffers from a lack of color diversity, making it difficult to differentiate between the different portions of the graph. I would recommend adding contrasting colors that make it easy for the viewer to immediately delineate between the pie portions.*
+
+## Graph 15
+> *This graph suffers from a lack of color and laying issues. Because the graph is in black and white, it is almost impossible to tell the difference between the different lines of the graph. Another issue is that it looks like the graph was layered over the legend, just making the graph look poorly constructed.I would print this in color and double check that the graph is layered correctly to avoid any obstructions of data or lettering.*
