@@ -1,15 +1,13 @@
 ---
-title: 'Final Exam: Building a  Neural Network Model with keras to Predict Breast
-  Cancer'
+title: "Project Update 2"
 author: "Ian Lacy"
-date: "2023-05-10"
+date: "2023-12-01"
 output:
   word_document: default
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 

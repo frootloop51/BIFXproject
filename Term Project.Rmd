@@ -1,10 +1,19 @@
 ---
-title: "Project Update 2"
+title: 'Term Project'
 author: "Ian Lacy"
 date: "2023-12-01"
 output:
-  word_document: default
+  html_document: default
+  fig_width: "auto"
+  fig_height: "auto"
+always_allow_html: true
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(reticulate)
+```
+
 ```{r}
 suppressMessages(library(readr))
 suppressMessages(library(ggplot2))
@@ -13,12 +22,34 @@ suppressMessages(library(tidyr))
 suppressMessages(library(dplyr))
 suppressMessages(library(reshape2))
 
-```
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+c25 <- c(
+  "dodgerblue2", "#E31A1C", # red
+  "green4",
+  "#6A3D9A", # purple
+  "#FF7F00", # orange
+  "black", "gold1",
+  "skyblue2", "#FB9A99", # lt pink
+  "palegreen2",
+  "#CAB2D6", # lt purple
+  "#FDBF6F", # lt orange
+  "gray70", "khaki2",
+  "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
+  "darkturquoise", "green1", "yellow4", "yellow3",
+  "darkorange4", "brown"
+)
+
+cbbPalette1 <-  c("#D55E00", "#0072B2")
 ```
+```
+# Cleaning Data
+
+
+```{r}
+
+```
+
 
 ## Cleaning Data
 
@@ -63,7 +94,7 @@ ggplot(MD_Employ, aes(x = County, y = Employed, fill = County)) +
   labs(title = "Distribution of Employed People by County from 2010 to 2020",
        x = "County",
        y = "Number of Employed People") +
-  scale_fill_viridis_d()+
+   scale_fill_manual(values = c25)+
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
@@ -71,28 +102,42 @@ ggplot(MD_Employ, aes(x = County, y = Employed, fill = County)) +
 ```
 Looking at the above graph we see that Anne Arundel County,Baltimore County, Howard County, Montgomery, and Prince George's county are appear to be significant outliers in the number of total people employed. This makes sense because these are the largest counties by population in the state. This may make it difficult to determine how total employment affects crime rates unless we adjust for population, which the crime data does do by adjusting for crime per 100,000 people.
 
+
 Moving on, I did a similar plot to look at the total crime from year to year by county. 
 
 ```{r}
+
+
+
 ggplot(MD_Employ, aes(x = Year, y = EmploymentRatePer100K, color = County)) +
   geom_line() +
+  geom_point()+
   labs(title = "Employment per 100k by County from 2010 to 2020",
        x = "Year",
        y = "Number of People Employed per 100k") +
-  scale_color_viridis_d()
+  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_color_manual(values = c25)
 
 ```
+Looking at the above graph we see that +6Anne Arundel County,Baltimore County, Howard County, Montgomery, and Prince George's county are appear to be significant outliers in the number of total people employed. This makes sense because these are the largest counties by population in the state. This may make it difficult to determine how total employment affects crime rates unless we adjust for population, which the crime data does do by adjusting for crime per 100,000 people.
+
+
 ```{r}
-ggplot(PopData, aes(x = Year, y = CrimeRate, color = County)) +
+
+
+
+ggplot(PopData, aes(x = Year, y = ViolentRate, color = County))+
   geom_line() +
-  labs(title = "Crime Rate per 100k by County from 2010 to 2020",
+  geom_point()+
+  labs(title = "Violent Crime Rate per 100k by County from 2010 to 2020",
        x = "Year",
        y = "Number of Crimes per 100k") +
-  scale_color_viridis_d()
+  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_color_manual(values = c25)
 
 ```
 
-Looking at the above graph we see that Anne Arundel County,Baltimore County, Howard County, Montgomery, and Prince George's county are appear to be significant outliers in the number of total people employed. This makes sense because these are the largest counties by population in the state. This may make it difficult to determine how total employment affects crime rates unless we adjust for population, which the crime data does do by adjusting for crime per 100,000 people.
+
 
 Moving on, I did a similar plot to look at the total crime from year to year by county. 
 
@@ -111,7 +156,7 @@ ggplot(MD_Crime, aes(x = County, y = Total, fill = County)) +
   labs(title = "Distribution of Total Crimes by County from 2010 to 2020",
        x = "County",
        y = "Total Number of Crimes") +
-  scale_fill_viridis_d()+
+  scale_fill_manual(values = c25)+
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
@@ -134,6 +179,7 @@ MD_Crime_100_long <- pivot_longer(MD_Crime_100, cols = c(ViolentCrime, PropertyC
 ```
 
 ```{r}
+cbbPalette <-  c("#0072B2", "#D55E00")
 # Create a plot with different panels for each county
 ggplot(MD_Crime_100_long, aes(x = Year, y = CrimeRate, fill = CrimeType)) +
   geom_bar(stat="identity") +
@@ -142,9 +188,12 @@ ggplot(MD_Crime_100_long, aes(x = Year, y = CrimeRate, fill = CrimeType)) +
        x = "Year",
        y = "Number of Crimes Committed") +
   scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_fill_manual(values = cbbPalette, name = "Crime Type", labels = c("Property Crime", "Violent Crime")) +
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+
 ```{r}
 suppressMessages(MD_Crime_2 <- read_csv("C:/Users/ianla.000/Downloads/Crime_2.csv"))
 MD_Crime_2 
@@ -164,9 +213,11 @@ ggplot(MD_Crime_2_long, aes(x = Year, y = CrimeRate, fill = CrimeType)) +
   geom_bar(stat="identity") +
   facet_wrap(County ~ ., scales = "free_y") +
   scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_fill_manual(values = cbbPalette, name = "Crime Type", labels = c("Property Crime", "Violent Crime")) +
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
 ```{r}
 suppressMessages(MD_Crime_3 <- read_csv("C:/Users/ianla.000/Downloads/Crime3.csv"))
 #MD_Crime_3 
@@ -186,9 +237,12 @@ ggplot(MD_Crime_3_long, aes(x = Year, y = CrimeRate, fill = CrimeType)) +
   geom_bar(stat="identity") +
   facet_wrap(County ~ ., scales = "free_y") +
   scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_fill_manual(values = cbbPalette, name = "Crime Type", labels = c("Property Crime", "Violent Crime")) +
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+
 ```{r}
 suppressMessages(MD_Crime_4 <- read_csv("C:/Users/ianla.000/Downloads/Crime4.csv"))
 #MD_Crime_3 
@@ -208,6 +262,7 @@ ggplot(MD_Crime_4_long, aes(x = Year, y = CrimeRate, fill = CrimeType)) +
   geom_bar(stat="identity") +
   facet_wrap(County ~ ., scales = "free_y") +
   scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_fill_manual(values = cbbPalette, name = "Crime Type", labels = c("Property Crime", "Violent Crime")) +
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
@@ -226,7 +281,7 @@ ggplot(MD_Crime_larceny, aes(x = County, y = Prop100, fill = County)) +
   labs(title = "Property Crimes per 100k Residents by County from 2010 to 2020",
        x = "County",
        y = "Property Crime Rates") +
-  scale_fill_viridis_d()+
+  scale_fill_manual(values = c25)+
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
@@ -242,21 +297,22 @@ suppressMessages(MD_Crime_Assault <- read_csv("C:/Users/ianla.000/Downloads/Assa
 ```{r}
 ggplot(MD_Crime_Assault, aes(x = County, y = Violent100, fill = County)) +
   geom_boxplot() +
-  labs(title = "Violent Crimesper 100k Residents by County from 2010 to 2020",
+  labs(title = "Violent Crimes per 100k Residents by County from 2010 to 2020",
        x = "County",
-       y = "Violent Crime Rates") +
-  scale_fill_viridis_d()+
+       y = "Violent Crime per 100k") +
+  scale_fill_manual(values = c25)+
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
 ```
+
 ```{r}
 ggplot(MD_Employ, aes(x = County, y = EmploymentRatePer100K, fill = County)) +
   geom_boxplot() +
   labs(title = "Number of Employed People per 100k Residnets by County from 2010 to 2020",
        x = "County",
-       y = "Number of Employed People") +
-  scale_fill_viridis_d()+
+       y = "Number of Employed People per 100k") +
+  scale_fill_manual(values = c25)+
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
@@ -279,49 +335,8 @@ PopData_long
 
 
 ```{r}
-ggplot(filter(PopData_long, County %in% c("Carroll County","Cecil County","Charles County", "Dorchester County", "Frederick County","Garrett County")), aes(x = Year, y = Rates)) +
-  geom_line(aes(color = Type)) +
-  facet_wrap(County ~ .)+
-  labs(
-    title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
-    x = "Year",
-    y = "Rates per 100k"
-  ) +
-  theme_minimal()+
-  theme(
-    legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
-    legend.text = element_text(size = 8),   # Adjust the size of the legend text
-  axis.text.x = element_text(angle = 45, hjust = 1))+
-  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
-  theme_minimal()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-
-```
-```{r}
-ggplot(filter(PopData_long, County %in% c("Harford County","Howard County","Kent County", "Montgomery County", "Prince George's County","Queen Anne's County
-                                          ")), aes(x = Year, y = Rates)) +
-  geom_line(aes(color = Type)) +
-  facet_wrap(County ~ .)+
-  labs(
-    title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
-    x = "Year",
-    y = "Rates per 100k"
-  ) +
-  theme_minimal()+
-  theme(
-    legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
-    legend.text = element_text(size = 8),   # Adjust the size of the legend text
-  axis.text.x = element_text(angle = 45, hjust = 1))+
-  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
-  theme_minimal()+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-```
-
-```{r}
 ggplot(filter(PopData_long, County %in% c("Allegany County","Anne Arundel County","Baltimore City", "Baltimore County", "Calvert County","Caroline County")), aes(x = Year, y = Rates)) +
-  geom_line(aes(color = Type)) +
+  geom_line(aes(color = Type), size = .7) +
   facet_wrap(County ~ .)+
   labs(
     title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
@@ -329,7 +344,53 @@ ggplot(filter(PopData_long, County %in% c("Allegany County","Anne Arundel County
     y = "Rates per 100k"
   ) +
   theme_minimal()+
+  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_color_manual(values = cbbPalette1, name = "Crime Type", labels = c("Crime Rate", "Employment Rate")) +
   theme(
+    legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
+    legend.text = element_text(size = 8),   # Adjust the size of the legend text
+  axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme_minimal()+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+```{r}
+
+
+ggplot(filter(PopData_long, County %in% c("Carroll County","Cecil County","Charles County", "Dorchester County", "Frederick County","Garrett County")), aes(x = Year, y = Rates)) +
+  geom_line(aes(color = Type), size = .7) +
+  facet_wrap(County ~ .)+
+  labs(
+    title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
+    x = "Year",
+    y = "Rates per 100k"
+  ) +
+  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_color_manual(values = cbbPalette1, name = "Crime Type", labels = c("Crime Rate", "Employment Rate")) + 
+  theme(
+    legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
+    legend.text = element_text(size = 8),   # Adjust the size of the legend text
+  axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+
+```
+
+```{r}
+ggplot(filter(PopData_long, County %in% c("Harford County","Howard County","Kent County", "Montgomery County", "Prince George's County","Queen Anne's County")), aes(x = Year, y = Rates)) +
+  geom_line(aes(color = Type), size = .7) +
+  facet_wrap(County ~ .)+
+  labs(
+    title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
+    x = "Year",
+    y = "Rates per 100k"
+  ) +
+  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_color_manual(values = cbbPalette1, name = "Crime Type", labels = c("Crime Rate", "Employment Rate")) +
+    theme(
     legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
     legend.text = element_text(size = 8),   # Adjust the size of the legend text
   axis.text.x = element_text(angle = 45, hjust = 1))+
@@ -337,5 +398,27 @@ ggplot(filter(PopData_long, County %in% c("Allegany County","Anne Arundel County
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
+```
+
+```{r}
+ggplot(filter(PopData_long, County %in% c("Somerset County","St. Mary's County","Talbot County", "Washington County", "Wicomico County","Worcester County")), aes(x = Year, y = Rates)) +
+  geom_line(aes(color = Type), size = .7) +
+  facet_wrap(County ~ .)+
+  labs(
+    title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
+    x = "Year",
+    y = "Rates per 100k"
+  ) +
+  theme_minimal()+
+  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_color_manual(values = cbbPalette1, name = "Crime Type", labels = c("Crime Rate", "Employment Rate")) +
+  theme(
+    legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
+    legend.text = element_text(size = 8),   # Adjust the size of the legend text
+  axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme_minimal()+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
 ```
 
