@@ -1,15 +1,16 @@
 ---
-title: 'Analyzing Potential Correlation Between Employment and Violent Crime Rate (2010 to 2020)'
+title: 'Analyzing Correlation Between Employment and Violent Crime Rate in Maryland Counties (2010 to 2020)'
 author: "Ian Lacy"
 date: "2023-12-01"
 output:
   html_document: default
   fig_width: "auto"
   fig_height: "auto"
+always_allow_html: true
 ---
 
-```{r setup, include=TRUE}
-knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
@@ -50,7 +51,7 @@ cbbPalette2 <-  c("#D55E00", "#0072B2")
 Some research has indicated that lower employment rates may be linked to higher rates of violent crime (UC Davis,2022).
 According to Anirban Basu,chairman and chief executive of Sage Policy Group, an economic and policy consulting firm headquartered in Baltimore, “The private sector in Maryland is largely stagnant.” Basu posited that Maryland’s low unemployment rate is likely not because of a competitive labor market, but that people have moved elsewhere for other opportunities. As Maryland’s economic numbers have stagnated, there has also been a rise in violent crime. “Homicides in the state rose to a ten-year high of 573 in 2020, a nearly 35% increase from 2010. The largest year-to-year increase occurred in 2015 when homicides rose to 553, a 52% increase from the previous year,” according to reporting from The Maryland Daily Record. 
 
-Given that the private sector is lagging and violent crime is surging, I decided to look at county-by-county data to see if employment rates are correlated with increases in violent crime. I did this by visualizing publicly available data and seeing if there are any noticeable correlations. 
+Given that the private sector is lagging and violent crime is surging, I decided to look at county-by-county data to see if employment rates are correlated with increases in violent crime. I will do this by visualizing publicly available data and seeing if there are any noticeable correlations. 
 
 ## Materials and Methods
 
@@ -66,31 +67,41 @@ To conduct this research I sourced county employment and crime data using data f
   
 I then imported this data into RStudio using R version 4.3.0 (2023-04-21 ucrt) -- "Already Tomorrow."
 
-All data used in this analysis was sourced from the aforementioned datasets, including the population total.
+Throughout my analysis I used a variety of libraries to transform and visualize the data. These libraries and the steps I took are listed throughout the document.
 
-Throughout my analysis I used a variety of libraries to transform and visualize the data. These libraries and the steps I took are available in the R Markdown document associated that produced this presentation.
-
-##Results
+## Results
 
 ### Exploratory Analysis
 
 As part of the analysis process I conducted some basic data cleaning and produced some basic visualizations to help figure out how to proceed with my analysis. 
 
-Data cleaning revealed that there was a lot of missing data in the employment information by job sector. This is probably due to certain industries being over/under represented or not present in certain counties based on real world factors like the presence of farms or proximity to resource extraction industries. Overall, there were more than 800 pieces of NA data,  so I decided to just use total employment numbers by county from 2010 to 2020. I  then decided to see if there were any outliers in the data to see if any counties need to be dropped from the analysis because they may skew the data. 
+Data cleaning revealed that there were a lot of missing data in the employment information by job sector. This is probably due to certain industries being over/under represented or not present in certain counties based on real world factors like the presence of farms or proximity to resource extraction industries. Overall, there were more than 800 pieces of NA data,  so I decided to just use total employment numbers by county from 2010 to 2020. I  then decided to see if there were any outliers in the data to see if any counties need to be dropped from the analysis because they may skew the data. 
 
 ```{r}
+suppressMessages(MD_Jobs <- read_csv("C:/Users/ianla.000/Downloads/MD_jobs.csv"))
 suppressMessages(PopData <- read_csv("C:/Users/ianla.000/Downloads/Pop Data.csv"))
 
 ```
 
-
+```{r}
+summary(MD_Jobs)
+```
 ```{r}
 suppressMessages(MD_Employ <- read_csv("C:/Users/ianla.000/Downloads/Total_Employ_MD.csv"))
 
 MD_Employ$EmploymentRatePer100K <- (MD_Employ$Employed / MD_Employ$Population) * 100000
 
+MD_Employ$EmploymentRatePer10k <- (MD_Employ$Employed / MD_Employ$Population) * 100
+
+MD_Employ$EmploymentRatePer10k <- (MD_Employ$EmploymentRatePer10k/100) *10000
+
 MD_Employ
 
+```
+
+
+```{r}
+MD_Employ
 ```
 
 
@@ -107,7 +118,9 @@ ggplot(MD_Employ, aes(x = County, y = Employed, fill = County)) +
 
 ```
 
-Looking at the above graph we see that Anne Arundel County,Baltimore County, Howard County, Montgomery, and Prince George's county are appear to be significant outliers in the number of total people employed based on the raw total of number of people employed. This makes sense because these are the largest counties by population in the state. Based on this graph, I determined that unadjusted data might make it difficult to determine how total employment affects crime rates unless we adjust for population, which the crime data set does do by adjusting for crime per 100,000 people. Before adding any features to the data to adjust for per capita employment, I produced a similar plot to the one above that looked at total crime (not adjusted by population) from 2010 to 2020 by county. 
+Looking at the above graph we see that Anne Arundel County,Baltimore County, Howard County, Montgomery, and Prince George's county are appear to be significant outliers in the number of total people employed. This makes sense because these are the largest counties by population in the state. This may make it difficult to determine how total employment affects crime rates unless we adjust for population, which the crime data does do by adjusting for crime per 100,000 people. Therefore, I created a feature that  adjusts employment to a per capita measurement per 100k residents.
+
+I did a similar plot to look at the total crime (not adjusted by population) from year to year by county. 
 
 ```{r}
 suppressMessages(MD_Crime <- read_csv("C:/Users/ianla.000/Downloads/Crime_total.csv"))
@@ -124,10 +137,7 @@ ggplot(MD_Crime, aes(x = County, y = Total, fill = County)) +
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
 ```
-
 In general we see a similar trend to the employment data, with higher total crime numbers relative to the population. This confirms that using adjusted metrics for crime rates per 100,00 will be necessary to avoid skewed data.
-
-Therefore, I created a feature that  adjusts employment to a per capita measurement per 100k residents.
 
 Next, because there are so many types of violent crime and property crime, I thought it would be better to look at the total violent crime and property crime rates over time to see if there are any overall trends across the different counties.
 
@@ -196,14 +206,9 @@ MD_Crime_100_long <- pivot_longer(MD_Crime100, cols = c(ViolentCrime, PropertyCr
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+After looking at the breakdown of property crime versus violent crime I realized several things: 1) property crime is by far the most prevalent form of crime in any Maryland county. 2) Overall, violent crime rates seem relatively flat over time. 3) Property crime rates appear to consistently be falling over time.
 
-After looking at the breakdown of property crime versus violent crime I realized several things: 
-
-* Property crime is by far the most prevalent form of crime in any Maryland county. 
-* Overall, violent crime rates seem relatively flat over time. 
-* Property crime rates appear to consistently fall from 2010 to 2020.
-
-Based on this, I decided to look at the distributions of property and violent crime rates adjusted for population. All rates are presented per 100k residents.
+Based on this, I decided to look at the distributions of property and violent crime rates adjusted for population. All rates are presented as per 100k residents.
 
 ```{r}
 ggplot(MD_Crime100, aes(x = County, y = PropertyCrime, fill = County)) +
@@ -216,7 +221,6 @@ ggplot(MD_Crime100, aes(x = County, y = PropertyCrime, fill = County)) +
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
 ```
-
 The above graph shows that property crime rates are generally similar across all counties with most counties showing wide variation and overlap compared to one another. Baltimore city has a consistently higher rate with a smaller distribution, indicating that property crime is consistent over time.
 
 ```{r}
@@ -224,19 +228,18 @@ ggplot(MD_Crime100, aes(x = County, y = ViolentCrime, fill = County)) +
   geom_boxplot() +
   labs(title = "Violent Crimes per 100k Residents by County from 2010 to 2020",
        x = "County",
-       y = "Violent Crime Rates") +
+       y = "Property Crime Rates") +
   scale_fill_manual(values = c25)+
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
 ```
+The violent crime boxplots show that violent crime is consistently low over time and are generally under 500 violent crimes per 100k people.
 
-The violent crime boxplots show that violent crime is consistently low over time and are generally under 500 violent crimes per 100k people. 
 
+As we can the boxplots confirm what we saw in the stacked bar charts, violent crime is generally quite low with small distributions. This indicates that violent crime is largely stagnant. Of course, the  boxplots show that violent crime and property crime are consistently high in Baltimore City.
 
-The boxplots confirm what we saw in the stacked bar charts, violent crime is generally quite low with small distributions. This indicates that violent crime is largely stagnant. Of course, the  boxplots show that violent crime and property crime are consistently high in Baltimore City.
-
-The final plot for the exploratory analysis looked at whether employment was similar across counties over time.
+The final plot for the exploratory analysis looked at weather employment was similar across counties over time.
 
 ```{r}
 ggplot(MD_Employ, aes(x = County, y = EmploymentRatePer100K, fill = County)) +
@@ -249,14 +252,30 @@ ggplot(MD_Employ, aes(x = County, y = EmploymentRatePer100K, fill = County)) +
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
 ```
+This plot confirms that employment is staying consistent across counties and time. Baltimore City is an exception,with a very narrow distribution that hovers near zero.
 
-This plot confirms that employment is staying consistent across counties and time. There are two exceptions: Baltimore City and Somerset County. Both Somerset County and Baltimore City have very narrow distributions and are considerably lower than any other county. 
+```{r}
+ggplot(filter(PopData_long, County %in% c("Allegany County","Anne Arundel County","Baltimore City", "Baltimore County", "Calvert County","Caroline County")), aes(x = Year, y = Rates)) +
+  geom_line(aes(color = Type), size = .7) +
+  facet_wrap(County ~ .)+
+  labs(
+    title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
+    x = "Year",
+    y = "Rates per 100k"
+  ) +
+  theme_minimal()+
+  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
+  scale_color_manual(values = cbbPalette1, name = "Crime Type", labels = c("Crime Rate", "Employment Rate")) +
+  theme(
+    legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
+    legend.text = element_text(size = 8),   # Adjust the size of the legend text
+  axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme_minimal()+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-### Final Graphs
 
-The exploratory analysis revealed that adjusting for population was necessary, that crime appeared to dropping over time, and that most counties had stable employment rates. This informed my decision to combine property and violent crime rates in the next set of graphs because violent crime rates are so low it would be difficult to compare it directly to employment rates.
+```
 
-The below graphs compare combined crime rates per capita and employment rates per capita in each county from 2010 to 2020.
 
 
 ```{r}
@@ -264,10 +283,16 @@ suppressMessages(PopData <- read_csv("C:/Users/ianla.000/Downloads/Pop Data.csv"
 ```
 
 ```{r}
-#PopData
+PopData
+```
+
+```{r}
+
 PopData_long <- pivot_longer(PopData, cols = c(CrimeRate, EmploymentRate), names_to = "Type", values_to = "Rates")
-#PopData_long
+PopData_long
+
 ```
+
 
 ```{r}
 ggplot(filter(PopData_long, County %in% c("Allegany County","Anne Arundel County","Baltimore City", "Baltimore County", "Calvert County","Caroline County")), aes(x = Year, y = Rates)) +
@@ -290,29 +315,6 @@ ggplot(filter(PopData_long, County %in% c("Allegany County","Anne Arundel County
 
 
 ```
-
-```{r}
-ggplot(filter(PopData_long, County %in% c("Allegany County","Anne Arundel County","Baltimore City", "Baltimore County", "Calvert County","Caroline County")), aes(x = Year, y = Rates)) +
-  geom_line(aes(color = Type), size = .7) +
-  facet_wrap(County ~ .)+
-  labs(
-    title = " Per Capita Employment and Crime Rates by County from 2010 to 2020",
-    x = "Year",
-    y = "Rates per 100k"
-  ) +
-  theme_minimal()+
-  scale_x_continuous(limits = c(2010, 2020), breaks = seq(2010, 2020, 2))+
-  scale_color_manual(values = cbbPalette2, name = "Crime Type", labels = c("Crime Rate", "Employment Rate")) +
-  theme(
-    legend.key.size = unit(0.3, "lines"),  # Adjust the size of the legend key
-    legend.text = element_text(size = 8),   # Adjust the size of the legend text
-  axis.text.x = element_text(angle = 45, hjust = 1))+
-  theme_minimal()+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-```
-
 
 ```{r}
 
@@ -379,23 +381,6 @@ ggplot(filter(PopData_long, County %in% c("Somerset County","St. Mary's County",
 
 
 ```
-
-All of the above graphs indicate that there is essentially no correlation between overall crime and employment rate. The lines are largely parallel showing that these data are not influencing one another.
-
-Again, the graphs are looking at combined crime because violent crime accounts for such a small amount of total crime in all Maryland counties.
-
-Interestingly, Baltimore City actually has a lower employment rate than combined crime rate. But, even in this instance,  there still appears to be no correlation between crime rate and employment rates.
-
-## Discussion
-
-While this analysis benefited from having large, publicly available datasets, there will still some issues with the data including things like large numbers of missing data. 
-
-Additionally, the violent crime information list four major kinda of violent crime in line with FBI reporting (https://ucr.fbi.gov/crime-in-the-u.s/2010/crime-in-the-u.s.-2010/violent-crime) but because these data are limited to four categories (murder, rape, robbery, and aggravated assault) other types of violent crime may have been excluded from the analysis. I have similar concerns about the property crime data because it is limited to four categories: breaking and entering, larceny, theft, and motor vehicle theft. Again, the data was not clear on what was included and what excluded. This could lead to unknown confounding variables/missing variables that could help improve the modeling in this document. 
-
-There is one consistent outlier in most of the graphs displayed throughout this presentation and that is Baltimore City. Baltimore City could be interesting because employment rates are below crime rates, so looking into more detailed information specific to that jurisdiction like different types of crime (drug-related crimes) and more county-specific employment data (job sectors present) could help identify interventions to improve economic prospects for city residents that could commensurately lower crime rates. 
-
-I would say that while this analysis was a good first step, a further analysis with additional crime 
-
 
 
 

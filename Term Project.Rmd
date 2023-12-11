@@ -147,7 +147,7 @@ suppressMessages(MD_Crime <- read_csv("C:/Users/ianla.000/Downloads/Crime_total.
 
 ```{r}
 #summary(MD_Crime)
-#MD_Crime
+MD_Crime
 ```
 
 ```{r}
@@ -326,6 +326,7 @@ suppressMessages(PopData <- read_csv("C:/Users/ianla.000/Downloads/Pop Data.csv"
 ```{r}
 PopData
 ```
+
 ```{r}
 
 PopData_long <- pivot_longer(PopData, cols = c(CrimeRate, EmploymentRate), names_to = "Type", values_to = "Rates")
