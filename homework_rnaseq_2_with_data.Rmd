@@ -1,0 +1,414 @@
+---
+title: "Homework RNA-Seq Part II: Analyzing RNA-Seq Data with edgeR and DESeq2"
+author: "Data Science for Bioinformatics S2024"
+output:
+  html_document: default
+---
+
+
+Student Name:Ian Lacy
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+
+
+pretty_print_seq <- function(s, block_len=10, line_len=50) {
+   n = nchar(s)
+   for (i in 1:n) {
+       cat(substr(s,i,i))
+       if ((i %% line_len) == 0) {
+           cat("\n")
+       } else if ((i %% block_len) == 0) {
+           cat(" ")
+       }
+   }
+   cat("\n")
+}
+```
+
+## Preliminaries
+
+Ensure that you have the following R libraries installed:
+
+```{r}
+#install.packages("dplyr")
+library(dplyr)
+#BiocManager::install("Biostrings")
+library(Biostrings)
+#install.packages("IRanges")
+library(IRanges)
+#BiocManager::install("edgeR")
+library(edgeR)
+# BiocManager::install('DESeq2')
+library(DESeq2)
+library(tidyr)
+```
+
+## From Reads to Count Matrices
+
+Let us tabulate, how often a read matches to a gene region. Let there be 2 rows for the 2 genes. And let there be for n students be n * 2 columns (n columns for control and n columns for "case"). In this matrix we enter integer values: for each gene, each students reports two numbers: the number of reads that match to that gene from the normal group and the control group.
+This is called the "count matrix".
+
+
+```{r}
+
+genome = DNAString("TTTTAATCAGCTTCCGGTGACATATATAAATGTTTTCTCGGGAGTAGGACTGGTGGGCGGGGCATATAAATCTTGGTTATTATTT") 
+
+
+mock_reads <- scan(text = "
+TGACATAT
+GTCACCGG
+CTTCCGGT
+CTTCCGGT
+CGGTGACA
+CATATATA
+GACATATA
+ACATATAT
+CGGTGACA
+CATATATA
+CTTCCGGT
+ATATATAA
+GACATATA
+CGGGGCAT
+CATATAAA
+GGGCATAT
+GGAGTAGG
+GTAGGACT
+GCATATAA
+AGGACTGG
+CATATAAA
+TGGGCGGG
+GGACTGGT
+GGCGGGGC
+GGGGCATA
+TAGGACTG
+GGGCATAT
+GGCATATA
+CCCCGCCC
+GTGGGCGG
+ACTGGTGG
+TAGGACTG
+AGTAGGAC
+GGAGTAGG
+GGACTGGT
+TGGGCGGG
+TGGTGGGC
+CAGTCCTA
+GTCCTACT
+", what = "", quiet = TRUE) # 2, 99,108,109
+
+```
+
+The mock genome sequence is: `r genome`
+The individual sequences are:
+
+```{r}
+mock_reads <- DNAStringSet(mock_reads)
+print(mock_reads)
+
+```
+
+
+## Exercise 1: Find Matches using `matchPattern` 
+
+Use the control sequences to find matching regions. Identify the region where the first sequence `GTGACATA` (reverse TATGTCAC) is matching the mock genome sequence. Use the function `matchPattern` from the `Biostrings` package.
+
+a) Biological sequences are frequently represented as simple strings on the coding side. Bioconductor encourages or enforces to be more specific and use instead the representation in form of the DNAString, RNAString or AAString for single sequences or the multi-sequence analogues DNAStringSet, RNAStringSet, AAStringSet. Use the function `Biostrings::matchPattern` to identify matches of that mock read to the mock genome
+What is the first and last position of the match with respect to the mock genome sequence?
+
+```{r exercise_1a}
+query1 = DNAString("GTGACATA")
+
+matches_query1 <- matchPattern(query1, genome)
+matches_query1
+
+```
+
+
+
+b)
+Confirm that this is a valid match by using the match result you obtained in a) and printing the matched sequence region from the mock genome and in the next line the query sequence. Do not manually type in the found positions but use general code that would provide a correct answer for other matches.
+Hint: you can use the function Biostrings::start() and end() to obtain a vector of the start and end position of all matches. 
+
+```{r exercise_1b}
+query1_start <- start(matches_query1)
+query1_start
+
+query1_end <- end(matches_query1)
+query1_end
+
+dna_match <- genome[query1_start: query1_end]
+dna_match
+
+
+```
+
+c) Perform a similar analysis using mock read sequence "TATGTCAC". Use again function matchPattern and show that you go 0 matches.
+
+
+```{r exercise_1c}
+query2 = DNAString("TATGTCAC")
+
+matches_query2 <- matchPattern(query2, genome)
+matches_query2
+
+```
+
+d) Why is the result of c) problematic and in some circumstances incorrect? Remember, the final stage of sequencing experiments is almost always DNA-sequening using a fragmenting approach. DNA is double-stranded and both forward and reverse strands can potentially find their way into the sequencing results as sequenced reads. But the reference genome is stored usually only once in form of the forward strand (saving the storage space for the reverse complement of the reference genome sequence due to its redundancy and often large size).
+Perform again a call with `matchPattern` on mock-read "TATGTCAC", however, this time apply first function Biostrings::reverseComplemnt to the mock read before the pattern matching.
+
+```{r exercise_1d}
+query2 = DNAString("TATGTCAC")
+reverse_query <-Biostrings::reverseComplement(query2)
+matches_reverse <- matchPattern(reverse_query, genome)
+matches_reverse
+
+```
+## Exercise 2: Find Matches using matchPDict
+
+A more elegant way to obtain all matches for a set of patterns is using the functions PDict and matchPDict from the Biostrings package that first create a dictionary of patterns and then perform a fast search in a target region.
+
+a) Use the function PDict to generate a dictionary of patterns for all sequences from variable `mock_reads`
+
+```{r exercise_2a}
+query_dict<- PDict(mock_reads)
+query_dict
+```
+
+b) Use function matchPDict to generate a list of all matches of all sequences with respect to the mock genome. Apply function `unlist` to the result of matchPDict to obtain an easier to process result. Remember to perform TWO searches: for the original sequence reads as well as their reverse-complement!
+Combine the results of the two searches in a variable called `my_ranges`. The value of a new column called "strand" should be set to "+" for matches from the searches of the original reads and "-" for matches from the matches with respect to the reverse complement of each read.
+
+```{r exercise_2b}
+dict_match <- matchPDict(query_dict, genome)
+dict_1 <- unlist(dict_match)
+mcols(dict_1)$strand <- "+"
+
+reverse_dict <-PDict(Biostrings::reverseComplement(mock_reads))
+matches_reverse <- matchPDict(reverse_dict, genome)
+matches_reverse1 <- unlist(matches_reverse)
+mcols(matches_reverse1)$strand <- "-"
+
+my_ranges <- append(dict_1, matches_reverse1)
+my_ranges
+```
+
+
+
+c) Use the function `Biostrings::coverage` on the result of the previous step to find the coverage of of the matches (in other words for each position on the mock genome a number that indicates how many mock reads are matching). Print the resulting output. Hint: The function `coverage` will not show the last region of the mock genome without any matches. One can nudge the function to also include that region with the parameter `width` and provided the length of the target sequence.
+Hint: The result is in run-length-encoding. You can convert to regular vector representation of integer counts using code like:
+`rep(rle_cov@values, times = rle_cov@lengths)`. Why is run-length-encoding useful in this context?
+
+
+```{r exercise_2c}
+ranges_cover <- coverage(my_ranges)
+ranges_cover
+
+```
+
+d) Plot the coverage using function `plot` as line-chart. Hint: First convert the run-length encoded result from the previous step to a regular vector using the function as.vector(...)
+
+```{r exercise_2d}
+plot(as.vector(ranges_cover),type='l', xlab="Genome", ylab="Coverage")
+```
+
+
+e) Identify gene regions: inspect the coverage plot. How many (mock) genes do you think are encoded in the mock genome? What genomic regions to they correspond to?
+
+It looks like there are two distinct regions with coverage so I would assume that we have two genes.
+
+
+## Exercise 3: From Read Alignments to a Count Matrix
+
+Let's write code that counts how many mock reads are matching a particular region in our mock genome. We already have the key information in form of the result of function matchPDict above.
+
+
+Let's create to IRanges objects that represent the intervals of the genes we identified:
+
+```{r exercise_3pre}
+
+g1range = IRanges(start=11, end=30)
+g2range = IRanges(start=41, end=70)
+```
+
+With function `findOverlaps` from R package `IRanges` we can know identify all reads that overlap with the genomic regions corresponding to gene1 and gene2 like so:
+
+```{r exercise_3x}
+#variable my_ranges contains result from matchPDict above
+findOverlaps(g1range, my_ranges)
+findOverlaps(g2range, my_ranges)
+```
+
+a) Instead of function `findOverlaps`, use similar function `countOverlaps` to count how many mock reads are overlapping with g1range and g2range. What are the 2 counts?
+
+```{r exercise_3a}
+countOverlaps(g1range, my_ranges)
+countOverlaps(g2range, my_ranges)
+```
+
+*Finally*, we identified two entries we can use in our count matrix!
+
+
+## Using edgeR for RNA-Seq Normalization
+
+Now we will use the `edgeR` package to use counts of RNA-Seq reads aligned to different gene regions in order to estimate differential gene expression. This is mock data, we assume that we have 2 experimental conditions called 'Case' and 'Control'. 
+
+```{r exercise_3c}
+
+
+options(warn=-1)
+counts = matrix(0, nrow=2, ncol=7) # 0 is just placeholder, will be replaced
+rownames(counts) = c('Gene1', 'Gene2')
+colnames(counts) = c("Case1", 'Case2', 'Case3', 'Case4',
+                     'Control1', 'Control2', 'Control3')
+counts['Gene1',] = c(17,	12,	10,	5,	85,	67,	90)  # counts for Gene1
+counts['Gene2',] = c(72,	81,	79,	92,	36,	41,	39)  # counts for Gene2
+knitr::kable(counts)
+df = tibble::tibble(ID=c("Case1",'Case2','Case3','Case4',
+                           'Control1', 'Control2', 'Control3'),
+                    Group=c('Case','Case','Case','Case',
+                            'Control','Control','Control'))
+knitr::kable(df)
+```
+
+### Grouping of Experiments
+
+We have to tell the algorithm how experiments are grouped into several groups. Examples are 'tumor' versus 'normal' or 'treatment' versus 'control'. In our case we call it 'Case' versus 'Control'.
+
+```{r exercise_3d}
+grouping <- factor(df[['Group']], levels =c("Control", "Case"))
+print(grouping)
+```
+
+### Creating a Differential Gene Expression List Object (DGEList)
+
+```{r exercise_3e}
+ count_dge <- edgeR::DGEList(counts = counts, samples = grouping)
+ count_dge
+```
+
+### Using edgeR
+
+```{r exercise_3f}
+ design <- model.matrix(~ grouping)
+ eset_dge <- edgeR::estimateDisp(count_dge, design)
+ fit <- edgeR::glmQLFit(eset_dge,design)
+ result <- edgeR::glmQLFTest(fit)
+```
+
+### Viewing edgeR Results
+
+Use topTags to view the results from your analysis:
+
+```{r exercise_3g}
+ knitr::kable(topTags(result))
+```
+
+
+## Exercise 4: Fixing a Terrible Mistake
+
+Inspect the initial results table returned by edgeR and function topTags.
+
+a) According to the initial results, what genes are up-regulated? Write your result without using code
+Gene 1 appears to be upregulated. I determined this because the value for LogFC is positive.
+
+b) According to the initial results,  genes are down-regulated? Write your result without using code
+Conversely, Gene 2 is downregulated. I determined this because the LogFC value is negative.
+
+c) Compare this with what you expect by inspecting the initial count matrix. Does this edgeR result make sense? Why not?
+This does not appear to make sense. The count matrix shows that gene 2 has higher counts in the case group and gene 1 has lower counts in the case group.
+
+d) How can this have happened? How can we fix it? Hint: although the initial results are completely wrong, the mistake may not be so easy to find ('deep bug'). The answer lies in the way the factor variable 'grouping' is ordered. edgeR looks at the order of the provided factor variable for experiment groups and uses it to define up and down-regulation. You can over-ride the default (alphabetical) order of factors in R function `factor` used above by specifically specifying the order of the factors using the parameter `levels`.
+The change has been implemented.
+
+e) Implement the fix you identified in the previous step and rerun this markdown file. Confirm that the edgeR results are now more in line with what we expect by inspecting the count data.
+Please see above. The findings should make more sense.
+
+f) What work habits can help to prevent or identify code bugs that dramatically impact results?
+Double checking results at each step and reviewing documentation to make sure we understand how functions work which will inform how data is structured. 
+
+## Exercise 5: Inspecting the Fixed edgeR Result
+
+Inspect the results table returned by edgeR and function topTags after you applied the code-fix.
+
+g) What genes are upregulated?
+  Gene 2 appears to be upregulated.
+h) What genes are downregulated?
+  Gene 1 appears to be downregulated.
+i) What is the ratio of the mean expression of 'Case' experiments divided by mean expression of 'Control' for Gene1? Hint: logFC stands for the logarithm (base 2) of the fold change between 
+
+## Using DESeq2 instead of edgeR
+
+Now we will apply a different package for analyzing RNA-Seq data called DESeq2. 
+The DESeq2 approach is based on the negative binomial distribution. Both the negative binomial distribution and the Poisson distribution are important tools for modeling count data, but they have different applications and assumptions. The Poisson distribution is appropriate when modeling events that occur at a fixed rate, while the negative binomial distribution is better suited for modeling events that occur randomly and exhibit overdispersion.
+
+One key difference between the two packages is that DESeq2 assumes that the variance and mean of the count data are related by a negative binomial distribution, while edgeR uses a more flexible approach that allows for gene-specific dispersion estimates. This can make edgeR more suitable for datasets with high levels of biological variability or low sequencing depth.
+
+Another difference is that DESeq2 is better suited for datasets with a large number of samples, while edgeR may be more appropriate for datasets with fewer samples. DESeq2 can also handle complex experimental designs, such as those involving multiple factors or time series data.
+
+
+
+
+The Interface of DESeq2 is slightly different compared to
+`edgeR`. As before we need to provide information about how
+the differernt experiments are grouped, but instead of a factor
+variable we have to provide a data frame, with the rownames
+corresponding to the experiment ids (equal to column names of the count data matrix) and one column containing the group-id name of the
+individual experiment.
+
+```{r exercise_4_1}
+rownames(df) = df$ID
+knitr::kable(df)
+``` 
+
+```{r exercise_4_2}
+ dds <- DESeqDataSetFromMatrix(countData = counts,colData = df, design = ~ Group)
+  dds
+```
+
+### Perform Computation
+
+```{r  exercise_4_3}
+ dds <- DESeq(dds)
+ print(dds)
+```
+
+
+## Exercise 6: Extract DESeq2 Results
+
+
+a) apply the function `results` from package DESeq2 to the result object (variable `dds`) created above. That function needs as first argument the result object, and as second argument (called 'contrast') a character vector of length 3 with first element being the column name containing the experiment group name, the second element containing the group name corresonding to the treatment or case, and the third element the character string corresponding to the control experiment group name. Print the resulting data frame.
+
+```{r exercise_6_1}
+results <- results(dds, contrast =c("Group","Case","Control"))
+results
+str(results)
+```
+
+b) Post-process results. We want to filter out result rows where the result is undefined ("NA") plus we want to sort by statistical significance. When given the choice between a raw P-value and a P-value that has been adjusted for multiple-testing correction, one should choose the adjusted version. This column is called `Padj` in case of the DESeq2 package and `FDR` (false discovery rate) in case of the edgeR package.
+
+```{r}
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("tidyr")) install.packages("tidyr")
+library(dplyr)
+library(tidyr)
+```
+
+
+```{r}
+results_convert <- as.data.frame(results)
+results_convert
+
+sorted_result <- results_convert %>% drop_na(log2FoldChange) %>% arrange(padj) # I ordered this in ascending order because it shows the most significant results first.
+sorted_result
+```
+
+
+c) By what factor are genes Gene1 and Gene2 up or down-regulated?
+Gene 1 is downregulated by a factor of -1.944038 and gene 2 is up regulated by a factor of 2.063292.
+
+d) Compare the results from edgeR and DESeq2. Both are respected approaches for RNA-Seq data normalization and analysis. Are the results very similar? What does that mean in practice about your data analysis?
+
+
+
+
+
